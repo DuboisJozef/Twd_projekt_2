@@ -14,10 +14,10 @@ library(lubridate)
 library(ggplot2)
 
 
-lok_joz <- fromJSON(file = "/home/joziop/Documents/twd_proj_2/twd2/Os_czasu_jo.json")
+lok_joz <- fromJSON(file = "./twd_proj_2/data/Os_czasu_jo.json")
 lok_joz <- lok_joz$semanticSegments
-lok_mic <- fromJSON(file = "/home/joziop/Documents/twd_proj_2/twd2/Os_czasu_mi.json")
-lok_kla <- fromJSON(file = "/home/joziop/Documents/twd_proj_2/twd2/Os_czasu_kl.json")
+lok_mic <- fromJSON(file = "./twd_proj_2/data/Os_czasu_mi.json")
+lok_kla <- fromJSON(file = "./twd_proj_2/data/Os_czasu_kl.json")
 Sys.setlocale("LC_TIME", "C")
 
 
