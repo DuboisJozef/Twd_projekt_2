@@ -55,8 +55,8 @@ miejsca <- function(x){
   for(i in 1:length(x)){
     if(!is.null(x[[i]]$visit)){
       ifelse(is.null(x[[i]]$visit$topCandidate$placeId),
-      place <- case_when(x[[i]]$visit$topCandidate$placeID == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
-                        # x[[i]]$visit$topCandidate$placeId == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
+      place <- case_when(# x[[i]]$visit$topCandidate$placeID == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
+                        x[[i]]$visit$topCandidate$placeID == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
                         x[[i]]$visit$topCandidate$placeID == "ChIJU-Q9-DzMHkcRARYuoIMMCx8" ~ "Dom Jozefa",
                         x[[i]]$visit$topCandidate$placeID == "ChIJGVrIUenMHkcRkSvEAxUOK3E" ~ "Politechnika", # angielski
                         x[[i]]$visit$topCandidate$placeID == "ChIJWTUjZY3MHkcR2U7HZ_LJC-s" ~ "Warszawa\nCentralna",
@@ -65,9 +65,10 @@ miejsca <- function(x){
                         x[[i]]$visit$topCandidate$placeID == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
                         #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
                         #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
+                        x[[i]]$visit$topCandidate$placeID == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji"
                         TRUE ~ "Inne")
-      , place <- case_when(x[[i]]$visit$topCandidate$placeId == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
-                          # x[[i]]$visit$topCandidate$placeId == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
+      , place <- case_when(# x[[i]]$visit$topCandidate$placeId == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
+                          x[[i]]$visit$topCandidate$placeId == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
                           x[[i]]$visit$topCandidate$placeId == "ChIJU-Q9-DzMHkcRARYuoIMMCx8" ~ "Dom Jozefa",
                           x[[i]]$visit$topCandidate$placeId == "ChIJGVrIUenMHkcRkSvEAxUOK3E" ~ "Politechnika", # angielski
                           x[[i]]$visit$topCandidate$placeId == "ChIJWTUjZY3MHkcR2U7HZ_LJC-s" ~ "Warszawa\nCentralna",
@@ -76,6 +77,8 @@ miejsca <- function(x){
                           x[[i]]$visit$topCandidate$placeId == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
                           #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
                           #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
+                          x[[i]]$visit$topCandidate$placeId == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji"
+                          
                           TRUE ~ "Inne"))
       
       day_diff <- ceiling(as.numeric(difftime(as.POSIXct(substr(x[[i]]$endTime, 1, 10), format = "%Y-%m-%d"),
@@ -95,7 +98,7 @@ miejsca <- function(x){
       counter <- counter + 1
     }
   }
-  result #[result$place != "Inne",]
+  result[result$place != "Inne",]
 }
 
 podroze_joz <- transport(lok_joz) %>% 
@@ -153,6 +156,8 @@ wizyty_kla <- miejsca(lok_kla) %>%
   mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
   mutate(person = "Klaudia")
 
+
+# input$People <- c("Klaudia", "Jozef", "Michal")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -258,18 +263,21 @@ server <- function(input, output) {
       podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic)%>%
         mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
                Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
-        filter(person %in% input$People)
-      
-      
-      agg_data <- podroze2 %>%
-        group_by(Day, activity) %>%
-        summarise(mean_speed = mean(distance / timeDurSec, na.rm = TRUE), .groups = 'drop') %>% 
+        filter(person %in% input$People) %>% 
         mutate(activity2 = case_when(activity == "CYCLING" ~ "cycling",
                                      activity == "IN_PASSENGER_VEHICLE" ~ "in car",
                                      activity == "IN_SUBWAY" ~ "in subway",
                                      activity == "IN_TRAM" ~ "in tram",
                                      activity == "WALKING" ~ "walking",
-                                     activity == "IN_TRAIN" ~ "in train"))
+                                     activity == "IN_TRAIN" ~ "in train",
+                                     TRUE ~ activity)) %>% 
+        filter(distance >= 1)
+      
+      
+      agg_data <- podroze2 %>%
+        group_by(Day, activity2) %>%
+        summarise(mean_speed = mean(as.numeric(distance) / as.numeric(timeDurSec), na.rm = TRUE), .groups = 'drop')
+        
       
       
       wyk1 <- ggplot(agg_data, aes(x = Day, y = mean_speed, fill = activity2)) +
