@@ -17,7 +17,7 @@ library(ggplot2)
 lok_joz <- fromJSON(file = "./twd_proj_2/data/Os_czasu_jo.json")
 lok_joz <- lok_joz$semanticSegments
 lok_mic <- fromJSON(file = "./twd_proj_2/data/Os_czasu_mi.json")
-lok_kla <- fromJSON(file = "./twd_proj_2/data/Os_czasu_kl.json")
+lok_kla <- fromJSON(file = "../twd_proj_2/data/Os_czasu_kl.json")
 Sys.setlocale("LC_TIME", "C")
 
 
@@ -180,6 +180,28 @@ ui <- fluidPage(
                  )
                )
       ),
+      tabPanel("Tranportation by type",
+               sidebarLayout(
+                 sidebarPanel(
+                   selectInput(
+                     inputId = "selectedPerson",
+                     label = "Select Person:",
+                     choices = c("Jozef", "Michal", "Klaudia"),
+                     selected = "Jozef"
+                   ),
+                   selectInput(
+                     inputId = "selectedWeek",
+                     label = "Select Week (or Overall):",
+                     choices = c("Overall", as.character(c(49:52,1,2))),
+                     selected = "Overall"
+                   )
+                 ),
+                 mainPanel(
+                   plotOutput("transportCountPlot"),
+                   plotOutput("transportTimePlot")
+                 )
+               )
+      ),
       tabPanel("Transport speed",
                sidebarLayout(
                  sidebarPanel(
@@ -201,6 +223,63 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  output$transportCountPlot <- renderPlot({
+    
+    # Filter data for the selected person and week (if specified)
+    personData <- switch(input$selectedPerson,
+                         "Jozef" = podroze_joz,
+                         "Michal" = podroze_mic,
+                         "Klaudia" = podroze_kla)
+    
+    if (input$selectedWeek != "Overall") {
+      personData <- personData %>% filter(weekNum == as.numeric(input$selectedWeek))
+    }
+    
+    # Summarize the count of each transportation type
+    transportCounts <- personData %>%
+      group_by(activity) %>%
+      summarise(count = n()) %>%
+      arrange(desc(count))
+    
+    # Plot transportation counts
+    ggplot(transportCounts, aes(x = reorder(activity, -count), y = count, fill = activity)) +
+      geom_bar(stat = "identity") +
+      theme_minimal() +
+      labs(title = paste("Most Frequently Used Transport (Count) -",
+                         ifelse(input$selectedWeek == "Overall", "Overall", paste("Week", input$selectedWeek)),
+                         "-", input$selectedPerson),
+           x = "Transportation Type", y = "Count", fill = "Transport") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+  
+  output$transportTimePlot <- renderPlot({
+    
+    # Filter data for the selected person and week (if specified)
+    personData <- switch(input$selectedPerson,
+                         "Jozef" = podroze_joz,
+                         "Michal" = podroze_mic,
+                         "Klaudia" = podroze_kla)
+    
+    if (input$selectedWeek != "Overall") {
+      personData <- personData %>% filter(weekNum == as.numeric(input$selectedWeek))
+    }
+    
+    # Summarize the total time spent on each transportation type
+    transportTime <- personData %>%
+      group_by(activity) %>%
+      summarise(totalTime = sum(timeDurSec, na.rm = TRUE)) %>%
+      arrange(desc(totalTime))
+    
+    # Plot transportation time
+    ggplot(transportTime, aes(x = reorder(activity, -totalTime), y = totalTime / 3600, fill = activity)) +
+      geom_bar(stat = "identity") +
+      theme_minimal() +
+      labs(title = paste("Time Spent on Transport (Hours) -",
+                         ifelse(input$selectedWeek == "Overall", "Overall", paste("Week", input$selectedWeek)),
+                         "-", input$selectedPerson),
+           x = "Transportation Type", y = "Time (Hours)", fill = "Transport") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
 
     output$dailyActivitiesPlot <- renderPlot({
       if(input$dropdown1 == "Jozef"){
@@ -258,7 +337,7 @@ server <- function(input, output) {
     output$transportSpeedPlot <- renderPlot({
       # pozniej dodam zeby kilka osob na raz dalo sie wziac
       
-      
+    
       
       podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic)%>%
         mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
