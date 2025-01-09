@@ -14,9 +14,10 @@ library(lubridate)
 library(ggplot2)
 
 
-lok_joz <- fromJSON(file = "Os_czasu_j.json")
-lok_mic <- fromJSON(file = "Os_czasu_j.json") # do zmiany
-lok_kla <- fromJSON(file = "Os_czasu_j.json")
+lok_joz <- fromJSON(file = "/home/joziop/Documents/twd_proj_2/twd2/Os_czasu_jo.json")
+lok_joz <- lok_joz$semanticSegments
+lok_mic <- fromJSON(file = "/home/joziop/Documents/twd_proj_2/twd2/Os_czasu_mi.json")
+lok_kla <- fromJSON(file = "/home/joziop/Documents/twd_proj_2/twd2/Os_czasu_kl.json")
 Sys.setlocale("LC_TIME", "C")
 
 
@@ -53,18 +54,29 @@ miejsca <- function(x){
   counter = 1
   for(i in 1:length(x)){
     if(!is.null(x[[i]]$visit)){
-      
-      place = case_when(x[[i]]$visit$topCandidate$placeId == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
+      ifelse(is.null(x[[i]]$visit$topCandidate$placeId),
+      place <- case_when(x[[i]]$visit$topCandidate$placeID == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
                         # x[[i]]$visit$topCandidate$placeId == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
-                        x[[i]]$visit$topCandidate$placeId == "ChIJU-Q9-DzMHkcRARYuoIMMCx8" ~ "Dom",
-                        x[[i]]$visit$topCandidate$placeId == "ChIJGVrIUenMHkcRkSvEAxUOK3E" ~ "Politechnika", # angielski
-                        x[[i]]$visit$topCandidate$placeId == "ChIJWTUjZY3MHkcR2U7HZ_LJC-s" ~ "Warszawa\nCentralna",
-                        x[[i]]$visit$topCandidate$placeId == "ChIJB4mvyljUG0cRYV0oM-DLm2g" ~ "Koluszki",
-                        x[[i]]$visit$topCandidate$placeId == "ChIJsQtqT0rTG0cRVbB818vuHhw" ~ "Działka",
-                        x[[i]]$visit$topCandidate$placeId == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen",
+                        x[[i]]$visit$topCandidate$placeID == "ChIJU-Q9-DzMHkcRARYuoIMMCx8" ~ "Dom Jozefa",
+                        x[[i]]$visit$topCandidate$placeID == "ChIJGVrIUenMHkcRkSvEAxUOK3E" ~ "Politechnika", # angielski
+                        x[[i]]$visit$topCandidate$placeID == "ChIJWTUjZY3MHkcR2U7HZ_LJC-s" ~ "Warszawa\nCentralna",
+                        x[[i]]$visit$topCandidate$placeID == "ChIJB4mvyljUG0cRYV0oM-DLm2g" ~ "Koluszki",
+                        x[[i]]$visit$topCandidate$placeID == "ChIJsQtqT0rTG0cRVbB818vuHhw" ~ "Działka Jozefa",
+                        x[[i]]$visit$topCandidate$placeID == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
                         #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
                         #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
                         TRUE ~ "Inne")
+      , place <- case_when(x[[i]]$visit$topCandidate$placeId == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
+                          # x[[i]]$visit$topCandidate$placeId == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
+                          x[[i]]$visit$topCandidate$placeId == "ChIJU-Q9-DzMHkcRARYuoIMMCx8" ~ "Dom Jozefa",
+                          x[[i]]$visit$topCandidate$placeId == "ChIJGVrIUenMHkcRkSvEAxUOK3E" ~ "Politechnika", # angielski
+                          x[[i]]$visit$topCandidate$placeId == "ChIJWTUjZY3MHkcR2U7HZ_LJC-s" ~ "Warszawa\nCentralna",
+                          x[[i]]$visit$topCandidate$placeId == "ChIJB4mvyljUG0cRYV0oM-DLm2g" ~ "Koluszki",
+                          x[[i]]$visit$topCandidate$placeId == "ChIJsQtqT0rTG0cRVbB818vuHhw" ~ "Działka Jozefa",
+                          x[[i]]$visit$topCandidate$placeId == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
+                          #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
+                          #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
+                          TRUE ~ "Inne"))
       
       day_diff <- ceiling(as.numeric(difftime(as.POSIXct(substr(x[[i]]$endTime, 1, 10), format = "%Y-%m-%d"),
                                               as.POSIXct(substr(x[[i]]$startTime, 1, 10), format = "%Y-%m-%d"), units = "days"))) + 1
@@ -83,74 +95,80 @@ miejsca <- function(x){
       counter <- counter + 1
     }
   }
-  result[result$place != "Inne",]
+  result #[result$place != "Inne",]
 }
 
-podroze_joz <- transport(lok_joz$semanticSegments) %>% 
+podroze_joz <- transport(lok_joz) %>% 
   mutate(timeDurSec = as.integer(difftime(as.POSIXct(substr(endTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"),
                                           as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                           units = "secs"))) %>% 
-  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d"))
+  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
+  mutate(person = "Jozef")
 
-wizyty_joz <- miejsca(lok_joz$semanticSegments) %>% 
+wizyty_joz <- miejsca(lok_joz) %>% 
   
   mutate(timeDurSec = as.integer(difftime(as.POSIXct(substr(endTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"),
                                           as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                           units = "secs")))%>% 
   group_by(place) %>% 
   mutate(sumTime = sum(timeDurSec)) %>% 
-  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d"))
+  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
+  mutate(person = "Jozef")
 
 
 
-podroze_mic <- transport(lok_mic$semanticSegments) %>% 
+podroze_mic <- transport(lok_mic) %>% 
   mutate(timeDurSec = as.integer(difftime(as.POSIXct(substr(endTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"),
                                           as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                           units = "secs"))) %>% 
-  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d"))
+  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
+  mutate(person = "Michal")
 
-wizyty_mic <- miejsca(lok_mic$semanticSegments) %>% 
+wizyty_mic <- miejsca(lok_mic) %>% 
   
   mutate(timeDurSec = as.integer(difftime(as.POSIXct(substr(endTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"),
                                           as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                           units = "secs")))%>% 
   group_by(place) %>% 
   mutate(sumTime = sum(timeDurSec)) %>% 
-  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d"))
+  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
+  mutate(person = "Michal")
 
 
 
-podroze_kla <- transport(lok_kla$semanticSegments) %>% 
+podroze_kla <- transport(lok_kla) %>% 
   mutate(timeDurSec = as.integer(difftime(as.POSIXct(substr(endTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"),
                                           as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                           units = "secs"))) %>% 
-  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d"))
+  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
+  mutate(person = "Klaudia")
 
-wizyty_kla <- miejsca(lok_kla$semanticSegments) %>% 
+wizyty_kla <- miejsca(lok_kla) %>% 
   
   mutate(timeDurSec = as.integer(difftime(as.POSIXct(substr(endTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"),
                                           as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                           units = "secs")))%>% 
   group_by(place) %>% 
   mutate(sumTime = sum(timeDurSec)) %>% 
-  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d"))
+  mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
+  mutate(person = "Klaudia")
 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("Localisation data analysis"),
 
     tabsetPanel(
       tabPanel("Weekly activities",
                sidebarLayout(
                  sidebarPanel(
                    sliderInput("sliderWeek1", "Select weeks for the plot:",
-                               min = 1, max = 2, value = c(1, 2), step = 1),
+                               min = 1, max = 5, value = c(1, 2), step = 1),
                  
                  selectInput("dropdown1", "Choose the person:",
-                             choices = c("jozef", "michal", "klaudia"))
+                             choices = c("Jozef", "Michal", "Klaudia"))
                  ),
                  mainPanel(
                    plotOutput("dailyActivitiesPlot")
@@ -160,8 +178,13 @@ ui <- fluidPage(
       tabPanel("Transport speed",
                sidebarLayout(
                  sidebarPanel(
-                   selectInput("dropdown2", "Choose a person:",
-                               choices = c("jozef", "michal", "klaudia"))
+                   selectInput(
+                     inputId = "People",
+                     label = "Select people:",
+                     choices = c("Jozef", "Klaudia", "Michal"),
+                     selected = c("Jozef", "Klaudia", "Michal"),  
+                     multiple = TRUE  
+                   )
                  ),
                  mainPanel(
                    plotOutput("transportSpeedPlot")
@@ -175,10 +198,10 @@ ui <- fluidPage(
 server <- function(input, output) {
 
     output$dailyActivitiesPlot <- renderPlot({
-      if(input$dropdown1 == "jozef"){
+      if(input$dropdown1 == "Jozef"){
         podroze <- podroze_joz
         wizyty <- wizyty_joz
-      } else if(input$dropdown1 == "klaudia"){
+      } else if(input$dropdown1 == "Klaudia"){
         podroze <- podroze_kla
         wizyty <- wizyty_kla
       } else {
@@ -230,9 +253,12 @@ server <- function(input, output) {
     output$transportSpeedPlot <- renderPlot({
       # pozniej dodam zeby kilka osob na raz dalo sie wziac
       
-      podroze2 <- podroze %>%
+      
+      
+      podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic)%>%
         mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
-               Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) 
+               Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
+        filter(person %in% input$People)
       
       
       agg_data <- podroze2 %>%
