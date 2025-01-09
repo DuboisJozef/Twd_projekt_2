@@ -65,7 +65,7 @@ miejsca <- function(x){
                         x[[i]]$visit$topCandidate$placeID == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
                         #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
                         #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
-                        x[[i]]$visit$topCandidate$placeID == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji"
+                        x[[i]]$visit$topCandidate$placeID == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji",
                         TRUE ~ "Inne")
       , place <- case_when(# x[[i]]$visit$topCandidate$placeId == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
                           x[[i]]$visit$topCandidate$placeId == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
@@ -77,7 +77,7 @@ miejsca <- function(x){
                           x[[i]]$visit$topCandidate$placeId == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
                           #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
                           #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
-                          x[[i]]$visit$topCandidate$placeId == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji"
+                          x[[i]]$visit$topCandidate$placeId == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji",
                           
                           TRUE ~ "Inne"))
       
