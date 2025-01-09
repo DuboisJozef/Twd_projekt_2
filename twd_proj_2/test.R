@@ -4,7 +4,7 @@ library(lubridate)
 library(ggplot2)
 
 
-lok_joz <- fromJSON(file = "/home/joziop/Documents/twd_proj_2/Os_czasu.json")
+lok_joz <- fromJSON(file = "./twd_proj_2/data/Os_czasu_jo.json")
 Sys.setlocale("LC_TIME", "C")
 semanticSegments <- lok_joz$semanticSegments
 
@@ -116,7 +116,7 @@ wyk3 <- ggplot(czas_na_uczelni, aes(x = dayOfWeek, group = befOrAft, y = speed, 
 
 wyk3
 
-ggsave("speedAfterFaculty.png", plot = wyk3, bg = "transparent", width = 10, height = 6, dpi = 300)
+ggsave("./twd_proj_2/charts/speedAfterFaculty.png", plot = wyk3, bg = "transparent", width = 10, height = 6, dpi = 300)
 
 
 czas_w_transporcie <- podroze %>%
@@ -156,7 +156,7 @@ wyk2 <- ggplot(czas, aes(y = meanTimeDur, x = dayOfWeek, fill = place))+
   theme_minimal()     
 
 wyk2
-ggsave("time.png", plot = wyk2, bg = "transparent", width = 10, height = 6, dpi = 300)
+ggsave("./twd_proj_2/charts/time.png", plot = wyk2, bg = "transparent", width = 10, height = 6, dpi = 300)
 
 
 
@@ -186,4 +186,4 @@ wyk1 <- ggplot(agg_data, aes(x = Day, y = mean_speed, fill = activity2)) +
 
 
 print(wyk1)
-ggsave("speedByMode.png", plot = wyk1, bg = "transparent", width = 10, height = 6, dpi = 300)
+ggsave("./twd_proj_2/charts/speedByMode.png", plot = wyk1, bg = "transparent", width = 10, height = 6, dpi = 300)
