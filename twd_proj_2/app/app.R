@@ -13,12 +13,17 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(leaflet)
+library(tidyr)
 
 
-lok_joz <- fromJSON(file = "./twd_proj_2/data/Os_czasu_jo.json")
+lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
 lok_joz <- lok_joz$semanticSegments
-lok_mic <- fromJSON(file = "./twd_proj_2/data/Os_czasu_mi.json")
-lok_kla <- fromJSON(file = "./twd_proj_2/data/Os_czasu_kl.json")
+lok_mic <- fromJSON(file = "../data/Os_czasu_mi.json")
+lok_kla <- fromJSON(file = "../data/Os_czasu_kl.json")
+
+# read merged df
+merged_df <- read.csv("../data/merged_data.csv")
+
 Sys.setlocale("LC_TIME", "C")
 
 
@@ -220,20 +225,36 @@ ui <- fluidPage(
                )
       ),
       tabPanel("Top 5 Most Visited Places",
-        sidebarLayout(
-          sidebarPanel(
-            selectInput("person", "Select Person Name:", 
-                      choices = c("Klaudia" = "kl", "Michal" = "mi", "Jozef" = "jo")),
-            selectInput("week", "Select Week Number:", choices = NULL),
-            actionButton("update", "Update")
-        ),
-        mainPanel(
-          h4("Top 5 Most Visited Places"),
-          leafletOutput("map"),
-          tableOutput("table")
-        )
-    )
-)
+               sidebarLayout(
+                 
+                 sidebarPanel(
+                   
+                   sliderInput("sliderWeekMap", "Select weeks for the plot:",
+                               min = 1, max = 5, value = c(1, 2), step = 1),
+                   
+                   selectInput(
+                     inputId = "PeopleMap",
+                     label = "Select people:",
+                     choices = c("Jozef", "Klaudia", "Michal"),
+                     selected = c("Jozef", "Klaudia", "Michal"),  
+                     multiple = TRUE  
+                   ),
+                   
+                   sliderInput(
+                     inputId = "topPlacesCountMap",
+                     label = "Select number of top places to display:",
+                     min = 1, max = 20, value = 5, step = 1
+                   )
+                   
+                 ),
+                 
+                 mainPanel(
+                   h4("Top 5 Most Visited Places"),
+                   leafletOutput("map", width = "100%", height = "800px")
+                 )
+               )
+      )
+  
 )
 )
 
@@ -398,59 +419,63 @@ server <- function(input, output, session) {
   
   
     ################################# Mapa #####################################
-  # Reactive file path based on selected person
-  file_path <- reactive({
-    req(input$person)
-    paste0(base_path, "Os_czasu_", input$person, ".csv")
-  })
+    # filter data
+    filtered_data <- reactive({
+      person_map <- c("Jozef" = "jo", "Michal" = "mi", "Klaudia" = "kl")
+      selected_people <- input$PeopleMap
+      ppl_map <- person_map[selected_people]
+      
+      merged_df %>%
+        filter(relativeWeekNum >= input$sliderWeekMap[1] & relativeWeekNum <= input$sliderWeekMap[2]) %>%
+        filter(person %in% ppl_map) %>% 
+        filter(!is.na(placeName))
+    })
   
-  # Reactive dataset loading
-  dataset <- reactive({
-    req(file_path())
-    read.csv(file_path(), stringsAsFactors = FALSE)
-  })
-  
-  # Update week choices based on the data
-  observe({
-    req(dataset())
-    updateSelectInput(session, "week", choices = sort(unique(dataset()$relativeWeekNum)))
-  })
-  
-  # Filter data based on selected week
-  filtered_data <- reactive({
-    req(dataset())
-    data <- dataset()
-    selected_week <- as.numeric(input$week)
-    
-    if (!is.null(selected_week)) {
-      data <- data %>% filter(relativeWeekNum == selected_week)
-    }
-    
-    # Get top 5 most visited places based on `visitProbability`
-    data %>% 
-      group_by(placeID, latitude, longitude) %>% 
-      summarize(totalVisits = n(), .groups = "drop") %>% 
-      arrange(desc(totalVisits)) %>% 
-      head(5)
-  })
-  
-  # Render map
-  output$map <- renderLeaflet({
-    req(filtered_data())
-    data <- filtered_data()
-    
-    leaflet(data) %>%
-      addTiles() %>%
-      addMarkers(lng = as.numeric(data$longitude), 
-                 lat = as.numeric(data$latitude), 
-                 popup = paste("Place ID:", data$placeID, "<br>Total Visits:", data$totalVisits))
-  })
-  
-  # Render table
-  output$table <- renderTable({
-    req(filtered_data())
-    filtered_data()
-  })
+      
+    # map
+    output$map <- renderLeaflet({
+      data_filtered <- filtered_data()
+      
+      top_n <- input$topPlacesCountMap
+      
+      # get top n places
+      top_places <- data_filtered %>%
+        count(placeName, latitude, longitude, person) %>%
+        arrange(desc(n)) %>%
+        head(top_n)
+      
+      # calculate values for setView
+      lat_range <- max(top_places$latitude, na.rm = TRUE) - min(top_places$latitude, na.rm = TRUE)
+      lng_range <- max(top_places$longitude, na.rm = TRUE) - min(top_places$longitude, na.rm = TRUE)
+      
+      if (nrow(top_places) > 0) {
+        center_lat <- mean(top_places$latitude, na.rm = TRUE)
+        center_lng <- mean(top_places$longitude, na.rm = TRUE)
+        zoom <- ifelse(lat_range > 1 || lng_range > 1, 7, 11)
+      } else {
+        # warsaw default
+        center_lat <- 52.2298
+        center_lng <- 21.0118
+        zoom <- 10
+      }
+      
+      # colors
+      color_palette <- colorFactor(c("red", "green", "blue"), levels = c("jo", "kl", "mi"))
+      
+      # plot
+      leaflet(data = top_places) %>%
+        addProviderTiles(providers$CartoDB.Positron) %>%
+        setView(lng = center_lng, lat = center_lat, zoom = zoom) %>% 
+        addCircleMarkers(
+          lat = ~latitude, lng = ~longitude,
+          radius = ~sqrt(n) * 3,
+          color = ~color_palette(person),
+          popup = ~paste(
+            "<strong>Place Name:</strong>", placeName, "<br>",
+            "<strong>Visits:</strong>", n, "<br>"
+          ) 
+        ) 
+    })
   
 }
 
