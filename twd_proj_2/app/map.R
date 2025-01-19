@@ -11,7 +11,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("person", "Select Person Name:", 
-                  choices = c("Klaudia" = "kl", "Michal" = "mi", "Jozef" = "j")),
+                  choices = c("Klaudia" = "kl", "Michal" = "mi", "Jozef" = "jo")),
       selectInput("week", "Select Week Number:", choices = NULL),
       actionButton("update", "Update")
     ),
