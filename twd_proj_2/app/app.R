@@ -14,6 +14,9 @@ library(lubridate)
 library(ggplot2)
 library(leaflet)
 library(tidyr)
+library(bslib)
+library(shinythemes)
+library(shinymaterial)
 
 
 lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
@@ -169,105 +172,29 @@ wizyty_kla <- miejsca(lok_kla) %>%
 
 ui <- fluidPage(
   
+  theme = bs_theme(
+    version = 5,            
+    bootswatch = "zephyr",   
+    primary = "#4285F4",    
+    secondary = "#0f9d58", 
+    success = "#FBBC05", 
+    warning = "#E94335", 
+    base_font = font_google("Product Sans"),  
+    heading_font = font_google("Product Sans")  
+  ),
+  
+  tags$style(HTML("
+  body {
+    background-color: #f5f5f5;
+  }
+  ")),
+  
   # start page
   uiOutput("startPage"),
   
   # app
   uiOutput("mainApp")
 )
-
-
-# ui <- fluidPage(
-# 
-#     # Application title
-#     titlePanel("Localisation data analysis"),
-# 
-#     tabsetPanel(
-#       tabPanel("Weekly activities",
-#                sidebarLayout(
-#                  sidebarPanel(
-#                    sliderInput("sliderWeek1", "Select weeks for the plot:",
-#                                min = 1, max = 5, value = c(1, 2), step = 1),
-#                  
-#                  selectInput("dropdown1", "Choose the person:",
-#                              choices = c("Jozef", "Michal", "Klaudia"))
-#                  ),
-#                  mainPanel(
-#                    plotOutput("dailyActivitiesPlot")
-#                  )
-#                )
-#       ),
-#       tabPanel("Tranportation by type",
-#                sidebarLayout(
-#                  sidebarPanel(
-#                    selectInput(
-#                      inputId = "selectedPerson",
-#                      label = "Select Person:",
-#                      choices = c("Jozef", "Michal", "Klaudia"),
-#                      selected = "Jozef"
-#                    ),
-#                    selectInput(
-#                      inputId = "selectedWeek",
-#                      label = "Select Week (or Overall):",
-#                      choices = c("Overall", 1:5),
-#                      selected = "Overall"
-#                    )
-#                  ),
-#                  mainPanel(
-#                    plotOutput("transportCountPlot"),
-#                    plotOutput("transportTimePlot")
-#                  )
-#                )
-#       ),
-#       tabPanel("Transport speed",
-#                sidebarLayout(
-#                  sidebarPanel(
-#                    selectInput(
-#                      inputId = "People",
-#                      label = "Select people:",
-#                      choices = c("Jozef", "Klaudia", "Michal"),
-#                      selected = c("Jozef", "Klaudia", "Michal"),  
-#                      multiple = TRUE  
-#                    )
-#                  ),
-#                  mainPanel(
-#                    plotOutput("transportSpeedPlot")
-#                  )
-#                )
-#       ),
-#       tabPanel("Top 5 Most Visited Places",
-#                sidebarLayout(
-#                  
-#                  sidebarPanel(
-#                    
-#                    sliderInput("sliderWeekMap", "Select weeks for the plot:",
-#                                min = 1, max = 5, value = c(1, 2), step = 1),
-#                    
-#                    selectInput(
-#                      inputId = "PeopleMap",
-#                      label = "Select people:",
-#                      choices = c("Jozef", "Klaudia", "Michal"),
-#                      selected = c("Jozef", "Klaudia", "Michal"),  
-#                      multiple = TRUE  
-#                    ),
-#                    
-#                    sliderInput(
-#                      inputId = "topPlacesCountMap",
-#                      label = "Select number of top places to display:",
-#                      min = 1, max = 20, value = 5, step = 1
-#                    )
-#                    
-#                  ),
-#                  
-#                  mainPanel(
-#                    h4("Top 5 Most Visited Places"),
-#                    leafletOutput("map", width = "100%", height = "800px")
-#                  )
-#                )
-#       )
-#   
-# )
-# )
 
 
 server <- function(input, output, session) {
@@ -300,7 +227,7 @@ output$startPage <- renderUI({
         
         ")),
       
-      tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "90px", width = "90px"),
+      tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
       
       div(style = "text-align: center;
         font-size: 100px;
@@ -315,20 +242,25 @@ output$startPage <- renderUI({
           HTML(
             paste0(
               # Google colors to each letter
-              paste0('<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
-                     '<span style="color: #34A853;">', substr("Map My Moments", 2, 2), '</span>',
-                     '<span style="color: #FBBC02;">', substr("Map My Moments", 3, 3), '</span>',
-                     '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
-                     '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
-                     '<span style="color: #34A853;">', substr("Map My Moments", 6, 6), '</span>',
-                     '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
-                     '<span style="color: #EA4335;">', substr("Map My Moments", 8, 8), '</span>',
-                     '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
-                     '<span style="color: #34A853;">', substr("Map My Moments", 10, 10), '</span>',
-                     '<span style="color: #FBBC02;">', substr("Map My Moments", 11, 11), '</span>',
-                     '<span style="color: #EA4335;">', substr("Map My Moments", 12, 12), '</span>',
-                     '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
-                     '<span style="color: #34A853;">', substr("Map My Moments", 14, 14), '</span>'
+              paste0(
+                '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
+                '<span style="color: #0f9d58;">', substr("Map My Moments", 2, 2), '</span>',
+                '<span style="color: #FBBC05;">', substr("Map My Moments", 3, 3), '</span>',
+                
+                '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
+                
+                '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
+                '<span style="color: #0f9d58;">', substr("Map My Moments", 6, 6), '</span>',
+                
+                '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
+                
+                '<span style="color: #E94335;">', substr("Map My Moments", 8, 8), '</span>',
+                '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
+                '<span style="color: #0f9d58;">', substr("Map My Moments", 10, 10), '</span>',
+                '<span style="color: #FBBC05;">', substr("Map My Moments", 11, 11), '</span>',
+                '<span style="color: #E94335;">', substr("Map My Moments", 12, 12), '</span>',
+                '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
+                '<span style="color: #0f9d58;">', substr("Map My Moments", 14, 14), '</span>'
               )
             )
           )
@@ -352,14 +284,18 @@ output$startPage <- renderUI({
     )
   }
 })
-  
-  
-  output$mainApp <- renderUI({
-    if (!values$showStartPage) {
-      tagList(
-        
-        tags$style(HTML("
-        
+
+
+output$mainApp <- renderUI({
+  if (!values$showStartPage) {
+    tagList(
+      
+      tags$head(
+        tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/icon?family=Material+Icons")
+      ),
+      
+      tags$style(HTML("
+
         #person_icon {
         position: absolute;
         top: 10px;
@@ -367,124 +303,213 @@ output$startPage <- renderUI({
         padding: 10px;
         }
         
+        .nav-tabs {
+          display: block;
+          width: 90px;
+          float: left;
+          background-color: f1f1f1;
+          position: fixed;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+        
+        .tab-content {
+          margin-left: 100px;
+        }
+        
+        .tab-content-wrapper {
+          background-color: #333; 
+        }
+
+        }
+
         ")),
+      
+      tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
+      
+      titlePanel(
         
-        tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "90px", width = "90px"),
-        
-        titlePanel(
-          
-          h1(style = "font-size: 60px; font-weight: 1000; padding: 20px",
+        h1(style = "font-size: 60px; font-weight: 1000; padding: 10px",
+           
+           HTML(
              
-             HTML(
+             paste0(
                
+               # Google colors to each letter
                paste0(
+                 '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
+                 '<span style="color: #0f9d58;">', substr("Map My Moments", 2, 2), '</span>',
+                 '<span style="color: #FBBC05;">', substr("Map My Moments", 3, 3), '</span>',
                  
-                 # Google colors to each letter
-                 paste0(
-                   '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
-                        '<span style="color: #34A853;">', substr("Map My Moments", 2, 2), '</span>',
-                        '<span style="color: #FBBC02;">', substr("Map My Moments", 3, 3), '</span>',
-                        '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
-                        '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
-                        '<span style="color: #34A853;">', substr("Map My Moments", 6, 6), '</span>',
-                        '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
-                        '<span style="color: #EA4335;">', substr("Map My Moments", 8, 8), '</span>',
-                        '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
-                        '<span style="color: #34A853;">', substr("Map My Moments", 10, 10), '</span>',
-                        '<span style="color: #FBBC02;">', substr("Map My Moments", 11, 11), '</span>',
-                        '<span style="color: #EA4335;">', substr("Map My Moments", 12, 12), '</span>',
-                        '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
-                        '<span style="color: #34A853;">', substr("Map My Moments", 14, 14), '</span>'
-                 )
+                 '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
                  
+                 '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
+                 '<span style="color: #0f9d58;">', substr("Map My Moments", 6, 6), '</span>',
+                 
+                 '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
+                 
+                 '<span style="color: #E94335;">', substr("Map My Moments", 8, 8), '</span>',
+                 '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
+                 '<span style="color: #0f9d58;">', substr("Map My Moments", 10, 10), '</span>',
+                 '<span style="color: #FBBC05;">', substr("Map My Moments", 11, 11), '</span>',
+                 '<span style="color: #E94335;">', substr("Map My Moments", 12, 12), '</span>',
+                 '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
+                 '<span style="color: #0f9d58;">', substr("Map My Moments", 14, 14), '</span>'
                )
                
              )
-          )
+             
+           )
+        )
+        
+      ),
+      
+      tabsetPanel(
+        type = "tabs",
+        
+        tabPanel(
+          # title = tagList(
+          #   tags$img(src = "https://cdn-icons-png.flaticon.com/128/2773/2773319.png", height = "30px", width = "30px"),
+          #   " Weekly Activities"
+          # ),
+          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/2773/2773319.png", height = "40px", width = "40px"),
+          
+         sidebarLayout(
+           sidebarPanel(
+             sliderInput("sliderWeek1", "Select weeks for the plot:",
+                         min = 1, max = 5, value = c(1, 2), step = 1),
+             selectInput("dropdown1", "Choose the person:",
+                         choices = c("Jozef", "Michal", "Klaudia"))
+           ),
+           mainPanel(
+             plotOutput("dailyActivitiesPlot")
+           )
+         )
+         
+        ),
+        tabPanel(
+          
+          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png", height = "40px", width = "40px"),
+          
+           sidebarLayout(
+             sidebarPanel(
+               selectInput(
+                 inputId = "selectedPerson",
+                 label = "Select Person:",
+                 choices = c("Jozef", "Michal", "Klaudia"),
+                 selected = "Jozef"
+               ),
+               selectInput(
+                 inputId = "selectedWeek",
+                 label = "Select Week (or Overall):",
+                 choices = c("Overall", 1:5),
+                 selected = "Overall"
+               )
+             ),
+             mainPanel(
+               plotOutput("transportCountPlot"),
+               plotOutput("transportTimePlot")
+             )
+           )
           
         ),
-        tabsetPanel(
-          tabPanel("Weekly activities",
-                   sidebarLayout(
-                     sidebarPanel(
-                       sliderInput("sliderWeek1", "Select weeks for the plot:",
-                                   min = 1, max = 5, value = c(1, 2), step = 1),
-                       selectInput("dropdown1", "Choose the person:",
-                                   choices = c("Jozef", "Michal", "Klaudia"))
-                     ),
-                     mainPanel(
-                       plotOutput("dailyActivitiesPlot")
-                     )
-                   )
+        
+        tabPanel(
+          
+          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/7552/7552703.png", height = "40px", width = "40px"),
+        
+          sidebarLayout(
+             sidebarPanel(
+               selectInput(
+                 inputId = "People",
+                 label = "Select people:",
+                 choices = c("Jozef", "Klaudia", "Michal"),
+                 selected = c("Jozef", "Klaudia", "Michal"),  
+                 multiple = TRUE  
+               )
+             ),
+             mainPanel(
+               plotOutput("transportSpeedPlot")
+             )
+           )
+        ),
+        
+        
+        # tabPanel("Top 5 Most Visited Places",
+        #          sidebarLayout(
+        #            sidebarPanel(
+        #              sliderInput("sliderWeekMap", "Select weeks for the plot:",
+        #                          min = 1, max = 5, value = c(1, 2), step = 1),
+        #              selectInput(
+        #                inputId = "PeopleMap",
+        #                label = "Select people:",
+        #                choices = c("Jozef", "Klaudia", "Michal"),
+        #                selected = c("Jozef", "Klaudia", "Michal"),
+        #                multiple = TRUE
+        #              ),
+        #              sliderInput(
+        #                inputId = "topPlacesCountMap",
+        #                label = "Select number of top places to display:",
+        #                min = 1, max = 20, value = 5, step = 1
+        #              )
+        #            ),
+        #            mainPanel(
+        #              h4("Top 5 Most Visited Places"),
+        #              leafletOutput("map", width = "100%", height = "800px")
+        #            )
+        #          )
+        # )
+        
+        
+        tabPanel(
+          
+          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/854/854878.png", height = "40px", width = "40px"),
+          
+          
+          fluidRow(
+            column(
+              12,
+              leafletOutput("map", width = "100%", height = "500px")
+            )
           ),
-          tabPanel("Transportation by type",
-                   sidebarLayout(
-                     sidebarPanel(
-                       selectInput(
-                         inputId = "selectedPerson",
-                         label = "Select Person:",
-                         choices = c("Jozef", "Michal", "Klaudia"),
-                         selected = "Jozef"
-                       ),
-                       selectInput(
-                         inputId = "selectedWeek",
-                         label = "Select Week (or Overall):",
-                         choices = c("Overall", 1:5),
-                         selected = "Overall"
-                       )
-                     ),
-                     mainPanel(
-                       plotOutput("transportCountPlot"),
-                       plotOutput("transportTimePlot")
-                     )
+          
+          fluidRow(
+            column(4,
+                   sliderInput(
+                     "sliderWeekMap", 
+                     "Select weeks for the plot:",
+                     min = 1, max = 5, value = c(1, 2), step = 1
                    )
-          ),
-          tabPanel("Transport speed",
-                   sidebarLayout(
-                     sidebarPanel(
-                       selectInput(
-                         inputId = "People",
-                         label = "Select people:",
-                         choices = c("Jozef", "Klaudia", "Michal"),
-                         selected = c("Jozef", "Klaudia", "Michal"),  
-                         multiple = TRUE  
-                       )
-                     ),
-                     mainPanel(
-                       plotOutput("transportSpeedPlot")
-                     )
+            ),
+            column(4,
+                   selectInput(
+                     inputId = "PeopleMap",
+                     label = "Select people:",
+                     choices = c("Jozef", "Klaudia", "Michal"),
+                     selected = c("Jozef", "Klaudia", "Michal"),
+                     multiple = TRUE
                    )
-          ),
-          tabPanel("Top 5 Most Visited Places",
-                   sidebarLayout(
-                     sidebarPanel(
-                       sliderInput("sliderWeekMap", "Select weeks for the plot:",
-                                   min = 1, max = 5, value = c(1, 2), step = 1),
-                       selectInput(
-                         inputId = "PeopleMap",
-                         label = "Select people:",
-                         choices = c("Jozef", "Klaudia", "Michal"),
-                         selected = c("Jozef", "Klaudia", "Michal"),  
-                         multiple = TRUE  
-                       ),
-                       sliderInput(
-                         inputId = "topPlacesCountMap",
-                         label = "Select number of top places to display:",
-                         min = 1, max = 20, value = 5, step = 1
-                       )
-                     ),
-                     mainPanel(
-                       h4("Top 5 Most Visited Places"),
-                       leafletOutput("map", width = "100%", height = "800px")
-                     )
+            ),
+            column(4,
+                   sliderInput(
+                     inputId = "topPlacesCountMap",
+                     label = "Select number of top places to display:",
+                     min = 1, max = 20, value = 5, step = 1
                    )
+            )
           )
         )
+        
+        
       )
-    }
-  })
-  
-  observeEvent(input$startBtn, {
+    )
+  }
+})
+
+
+
+
+observeEvent(input$startBtn, {
     values$showStartPage <- FALSE
     shinyjs::show("loading")
     
@@ -666,7 +691,11 @@ output$startPage <- renderUI({
         filter(!is.na(placeName))
     })
   
-      
+    # map title
+    output$dynamicTitleMap <- renderUI({
+      h4(paste("Top", input$topPlacesCountMap, "Most Visited Places"))
+    })
+  
     # map
     output$map <- renderLeaflet({
       data_filtered <- filtered_data()
