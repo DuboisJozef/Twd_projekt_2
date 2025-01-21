@@ -13,17 +13,22 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(leaflet)
+library(bslib)
 
 
-lok_joz <- fromJSON(file = "./twd_proj_2/data/Os_czasu_jo.json")
-lok_joz <- lok_joz$semanticSegments
-lok_mic <- fromJSON(file = "./twd_proj_2/data/Os_czasu_mi.json")
-lok_kla <- fromJSON(file = "./twd_proj_2/data/Os_czasu_kl.json")
+lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
+
+lok_mic <- fromJSON(file = "../data/Os_czasu_mi.json")
+lok_kla <- fromJSON(file = "../data/Os_czasu_kl.json")
+
+lok_names <- read.csv("../data/lok_names_jo.csv")
+
+
 Sys.setlocale("LC_TIME", "C")
-
+base_path <- "../data/"
 
 transport <- function(x){
-  col_names <- c("activity", "distance", "startTime", "endTime", "weekNum")
+  col_names <- c("activity", "activity_type","distance", "startTime", "endTime", "weekNum")
   
   
   result <- data.frame(matrix(ncol = length(col_names), nrow = 0))
@@ -34,10 +39,11 @@ transport <- function(x){
     if(!is.null(x[[i]]$activity)){
       
       result <- rbind(result, data.frame(activity = x[[i]]$activity$topCandidate$type, 
+                                         activity_type = "transport",
                                          distance = x[[i]]$activity$distanceMeters,
                                          startTime = x[[i]]$startTime, endTime = x[[i]]$endTime,
                                          weekNum = ceiling(as.numeric(difftime(as.POSIXct(substr(x[[i]]$startTime, 1, 10), format = "%Y-%m-%d"),
-                                                                               as.POSIXct("2024-12-05", format = "%Y-%m-%d"), units = "weeks")))))
+                                                                               as.POSIXct("2024-12-08", format = "%Y-%m-%d"), units = "weeks")))))
       counter <- counter + 1
     }
   }
@@ -46,7 +52,7 @@ transport <- function(x){
 
 miejsca <- function(x){
   
-  col_names <- c("place", "startTime", "endTime", "weekNum")
+  col_names <- c("place", "activity_type", "startTime", "endTime", "weekNum")
   
   
   result <- data.frame(matrix(ncol = length(col_names), nrow = 0))
@@ -55,51 +61,27 @@ miejsca <- function(x){
   counter = 1
   for(i in 1:length(x)){
     if(!is.null(x[[i]]$visit)){
-      ifelse(is.null(x[[i]]$visit$topCandidate$placeId),
-      place <- case_when(# x[[i]]$visit$topCandidate$placeID == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
-                        x[[i]]$visit$topCandidate$placeID == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
-                        x[[i]]$visit$topCandidate$placeID == "ChIJU-Q9-DzMHkcRARYuoIMMCx8" ~ "Dom Jozefa",
-                        x[[i]]$visit$topCandidate$placeID == "ChIJGVrIUenMHkcRkSvEAxUOK3E" ~ "Politechnika", # angielski
-                        x[[i]]$visit$topCandidate$placeID == "ChIJWTUjZY3MHkcR2U7HZ_LJC-s" ~ "Warszawa\nCentralna",
-                        x[[i]]$visit$topCandidate$placeID == "ChIJB4mvyljUG0cRYV0oM-DLm2g" ~ "Koluszki",
-                        x[[i]]$visit$topCandidate$placeID == "ChIJsQtqT0rTG0cRVbB818vuHhw" ~ "Działka Jozefa",
-                        x[[i]]$visit$topCandidate$placeID == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
-                        #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
-                        #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
-                        x[[i]]$visit$topCandidate$placeID == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji",
-                        TRUE ~ "Inne")
-      , place <- case_when(# x[[i]]$visit$topCandidate$placeId == "ChIJOWqUcOzMHkcROp3KVw-z22k" ~ "Politechnika", # mini
-                          x[[i]]$visit$topCandidate$placeId == "ChIJF8u2SOnMHkcR7TrJJ2_WP80" ~ "Politechnika", # gg
-                          x[[i]]$visit$topCandidate$placeId == "ChIJU-Q9-DzMHkcRARYuoIMMCx8" ~ "Dom Jozefa",
-                          x[[i]]$visit$topCandidate$placeId == "ChIJGVrIUenMHkcRkSvEAxUOK3E" ~ "Politechnika", # angielski
-                          x[[i]]$visit$topCandidate$placeId == "ChIJWTUjZY3MHkcR2U7HZ_LJC-s" ~ "Warszawa\nCentralna",
-                          x[[i]]$visit$topCandidate$placeId == "ChIJB4mvyljUG0cRYV0oM-DLm2g" ~ "Koluszki",
-                          x[[i]]$visit$topCandidate$placeId == "ChIJsQtqT0rTG0cRVbB818vuHhw" ~ "Działka Jozefa",
-                          x[[i]]$visit$topCandidate$placeId == "ChIJSS5pkozMHkcRwi0fMeV66cI" ~ "Basen PKiN",
-                          #x[[i]]$visit$topCandidate$placeId == "ChIJj1FLqc_MHkcR4HsjgGwILO4" ~ "Kampus Południowy",
-                          #x[[i]]$visit$topCandidate$placeId == "CwILO4" ~ "Hen daleko(kampus poludniowy)",
-                          x[[i]]$visit$topCandidate$placeId == "ChIJgU4sC8cJ80cRJ5AR6zA94mk" ~ "Dom rodzinny\nwe Francji",
-                          
-                          TRUE ~ "Inne"))
+      
       
       day_diff <- ceiling(as.numeric(difftime(as.POSIXct(substr(x[[i]]$endTime, 1, 10), format = "%Y-%m-%d"),
                                               as.POSIXct(substr(x[[i]]$startTime, 1, 10), format = "%Y-%m-%d"), units = "days"))) + 1
       
       
       for(j in 1:day_diff){
-        result <- rbind(result, data.frame(place = place,
+        result <- rbind(result, data.frame(place = ifelse(sum(lok_names$placeID == x[[i]]$visit$topCandidate$placeID) == 1,lok_names[lok_names$placeID == x[[i]]$visit$topCandidate$placeID,"name"], "other"),
+                                           activity_type = ifelse(sum(lok_names$placeID == x[[i]]$visit$topCandidate$placeID) == 1,lok_names[lok_names$placeID == x[[i]]$visit$topCandidate$placeID,"category"], "other"),
                                            startTime = case_when(j == 1 ~ substr(x[[i]]$startTime, 1, 19),
                                                                  TRUE ~ paste0(as.character(tail(seq(as.POSIXct(substr(x[[i]]$startTime, 1, 19), format = "%Y-%m-%d"), by= "day", length = j), n = 1)), "T00:00:00")), 
                                            endTime = case_when(j == day_diff ~ substr(x[[i]]$endTime, 1, 19),
                                                                j == 1 ~ paste0(as.character(as.POSIXct(substr(x[[i]]$startTime, 1, 19), format = "%Y-%m-%d")), "T23:59:59"),
                                                                TRUE ~ paste0(as.character(tail(seq(as.POSIXct(substr(x[[i]]$startTime, 1, 19), format = "%Y-%m-%d"), by= "day", length = j), n = 1)), "T23:59:59")),
                                            weekNum = ceiling(as.numeric(difftime(as.POSIXct(substr(x[[i]]$startTime, 1, 10), format = "%Y-%m-%d"),
-                                                                                 as.POSIXct("2024-12-05", format = "%Y-%m-%d"), units = "weeks")))))
+                                                                                 as.POSIXct("2024-12-08", format = "%Y-%m-%d"), units = "weeks")))))
       }
       counter <- counter + 1
     }
   }
-  result[result$place != "Inne",]
+  result
 }
 
 podroze_joz <- transport(lok_joz) %>% 
@@ -162,7 +144,7 @@ wizyty_kla <- miejsca(lok_kla) %>%
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
+  
     # Application title
     titlePanel("Localisation data analysis"),
 
@@ -171,17 +153,19 @@ ui <- fluidPage(
                sidebarLayout(
                  sidebarPanel(
                    sliderInput("sliderWeek1", "Select weeks for the plot:",
-                               min = 1, max = 5, value = c(1, 2), step = 1),
+                               min = 1, max = 6, value = c(1, 2), step = 1),
                  
                  selectInput("dropdown1", "Choose the person:",
                              choices = c("Jozef", "Michal", "Klaudia"))
                  ),
                  mainPanel(
-                   plotOutput("dailyActivitiesPlot")
+                   textOutput("weeklyActivitiesText1"),
+                   plotOutput("dailyActivitiesPlot"),
+                   
                  )
                )
       ),
-      tabPanel("Tranportation by type",
+      tabPanel("Transportation by type",
                sidebarLayout(
                  sidebarPanel(
                    selectInput(
@@ -210,15 +194,34 @@ ui <- fluidPage(
                      inputId = "People",
                      label = "Select people:",
                      choices = c("Jozef", "Klaudia", "Michal"),
-                     selected = c("Jozef", "Klaudia", "Michal"),  
+                     selected = c("Klaudia", "Michal"),  
                      multiple = TRUE  
+                   ),
+                   selectInput(
+                     inputId = "TransportType",
+                     label = "Select transport type:",
+                     choices = c("cycling", "in car", "in subway", "in tram", "walking", "in train"),
+                     selected = "walking"
+                   )
+                   ,
+                   selectInput(
+                     inputId = "selectedPerson2",
+                     label = "Select Person:",
+                     choices = c("Jozef", "Michal", "Klaudia"),
+                     selected = "Jozef"
                    )
                  ),
                  mainPanel(
-                   plotOutput("transportSpeedPlot")
+                   textOutput("transportSpeedText1"),     
+                   plotOutput("transportSpeedBoxPlot"),   
+                   textOutput("transportSpeedText2"),  
+                   plotOutput("transportSpeedBoxPlot2"),
+                   textOutput("transportSpeedText3"),  
+                   plotOutput("transportSpeedHeatmap"),
                  )
                )
       ),
+      
       tabPanel("Top 5 Most Visited Places",
         sidebarLayout(
           sidebarPanel(
@@ -304,6 +307,13 @@ server <- function(input, output, session) {
   
   ############################## Aktywności ####################################
   
+  output$weeklyActivitiesText1 <- renderText({
+    paste0("As we can see noone likes trains except jozef on some days. As we c
+           an see noone likes trains except jozef on some days. As we can see no
+           one likes trains except jozef on some days. As we can see noone likes 
+           trains except jozef on some days")
+  })
+  
     output$dailyActivitiesPlot <- renderPlot({
       if(input$dropdown1 == "Jozef"){
         podroze <- podroze_joz
@@ -316,6 +326,16 @@ server <- function(input, output, session) {
         wizyty <- wizyty_mic
       }
       
+      activity_colors <- c(
+        "home" = "#1ea362",
+        "studies" = "#4a89f3",
+        "transport" = "#dd4b3e",
+        "entertainment" = "#d3d3d3",
+        "shopping" = "#ffe047",
+        "restaurants" = "#aadaff",
+        "other" = "#ff0000"
+      )
+      
       czas_w_transporcie <- podroze %>%
         filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
         mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
@@ -324,77 +344,243 @@ server <- function(input, output, session) {
         mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
         ungroup() %>% 
         group_by() %>% 
-        select(dayOfWeek, meanTimeDur) %>% 
+        select(dayOfWeek, meanTimeDur, activity_type) %>% 
         group_by(dayOfWeek, meanTimeDur) %>% 
-        slice(1) %>% 
-        mutate(place = "transport")
+        slice(1)
       
       czas_miejsca <- wizyty %>% 
         filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
+        filter(place != "MiNI") %>% 
         mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>%
         mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
                dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
-        select(dayOfWeek, place, timeDurSec) %>% 
-        group_by(dayOfWeek, place) %>% 
+        select(dayOfWeek, timeDurSec, activity_type) %>% 
+        group_by(dayOfWeek, activity_type) %>% 
         mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
         ungroup() %>% 
-        select(dayOfWeek, place, meanTimeDur) %>% 
-        group_by(dayOfWeek, place, meanTimeDur) %>% 
+        select(dayOfWeek, activity_type, meanTimeDur) %>% 
+        group_by(dayOfWeek, activity_type, meanTimeDur) %>% 
+        mutate(activity_type = ifelse(activity_type == "holiday_home", "home", activity_type)) %>% 
         slice(1)
       
       czas <- rbind(czas_miejsca, czas_w_transporcie)
       
       
       
-      wyk2 <- ggplot(czas, aes(y = meanTimeDur, x = dayOfWeek, fill = place))+
+      wyk2 <- ggplot(czas, aes(y = meanTimeDur, x = dayOfWeek, fill = activity_type))+
         geom_bar(stat = "identity", position = "fill") +
-        labs(fill = "Place") +                         
+        labs(fill = "Activity Type") +                         
         xlab("Day of week") +                                     
         ylab("% of time of day") +                      
         ggtitle(paste0("Average daily time spent in each place by ", input$dropdown1)) +     
-        theme_minimal()     
+        theme_minimal()+
+        scale_fill_manual(values = activity_colors)
       
       wyk2
     })
   
+    
+   
   
   ############################## Predkość ######################################
     
-    output$transportSpeedPlot <- renderPlot({
-      # pozniej dodam zeby kilka osob na raz dalo sie wziac
-      
+    # output$transportSpeedPlot <- renderPlot({
+    #   # pozniej dodam zeby kilka osob na raz dalo sie wziac
+    #   
+    # 
+    #   
+    #   podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic)%>%
+    #     mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
+    #            Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
+    #     filter(person %in% input$People) %>% 
+    #     mutate(activity2 = case_when(activity == "CYCLING" ~ "cycling",
+    #                                  activity == "IN_PASSENGER_VEHICLE" ~ "in car",
+    #                                  activity == "IN_SUBWAY" ~ "in subway",
+    #                                  activity == "IN_TRAM" ~ "in tram",
+    #                                  activity == "WALKING" ~ "walking",
+    #                                  activity == "IN_TRAIN" ~ "in train",
+    #                                  TRUE ~ activity)) %>% 
+    #     filter(distance >= 1)
+    #   
+    #   
+    #   agg_data <- podroze2 %>%
+    #     group_by(Day, activity2) %>%
+    #     summarise(mean_speed = mean(as.numeric(distance) / as.numeric(timeDurSec), na.rm = TRUE), .groups = 'drop')
+    #     
+    #   
+    #   
+    #   wyk1 <- ggplot(agg_data, aes(x = Day, y = mean_speed, fill = activity2)) +
+    #     geom_col(position = position_dodge(width = 0.9)) + 
+    #     labs(fill = "") +                        
+    #     xlab("Day") +                                     
+    #     ylab("Average Speed (m/s)") +                      
+    #     ggtitle("Average speed by different means of transport") +     
+    #     theme_minimal()       
+    #   
+    #   wyk1
+    # })
+  
+  output$transportSpeedBoxPlot <- renderPlot({
+    # Combine datasets and filter based on inputs
+    podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic) %>%
+      mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
+             Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+      filter(person %in% input$People, distance >= 1) %>%
+      mutate(activity2 = case_when(
+        activity == "CYCLING" ~ "cycling",
+        activity == "IN_PASSENGER_VEHICLE" ~ "in car",
+        activity == "in passenger vehicle" ~ "in car",
+        activity == "IN_SUBWAY" ~ "in subway",
+        activity == "IN_TRAM" ~ "in tram",
+        activity == "WALKING" ~ "walking",
+        activity == "IN_TRAIN" ~ "in train",
+        TRUE ~ activity
+      )) %>%
+      filter(activity2 == input$TransportType)
     
-      
-      podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic)%>%
-        mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
-               Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
-        filter(person %in% input$People) %>% 
-        mutate(activity2 = case_when(activity == "CYCLING" ~ "cycling",
-                                     activity == "IN_PASSENGER_VEHICLE" ~ "in car",
-                                     activity == "IN_SUBWAY" ~ "in subway",
-                                     activity == "IN_TRAM" ~ "in tram",
-                                     activity == "WALKING" ~ "walking",
-                                     activity == "IN_TRAIN" ~ "in train",
-                                     TRUE ~ activity)) %>% 
-        filter(distance >= 1)
-      
-      
-      agg_data <- podroze2 %>%
-        group_by(Day, activity2) %>%
-        summarise(mean_speed = mean(as.numeric(distance) / as.numeric(timeDurSec), na.rm = TRUE), .groups = 'drop')
-        
-      
-      
-      wyk1 <- ggplot(agg_data, aes(x = Day, y = mean_speed, fill = activity2)) +
-        geom_col(position = position_dodge(width = 0.9)) + 
-        labs(fill = "") +                        
-        xlab("Day") +                                     
-        ylab("Average Speed (m/s)") +                      
-        ggtitle("Average speed by different means of transport") +     
-        theme_minimal()       
-      
-      wyk1
+    people_colors <- c(
+      "Klaudia" = "#1ea362",
+      "Michal" = "#4a89f3",
+      "Jozef" = "#dd4b3e"
+    )
+    
+    # Boxplot with people as color and weekdays on x-axis
+    ggplot(podroze2, aes(x = Day, y = as.numeric(distance) / as.numeric(timeDurSec), fill = person)) +
+      geom_boxplot() +
+      theme_minimal() +
+      labs(title = paste("Speed Distribution by Weekday and Person -", input$TransportType),
+           x = "Weekday", y = "Speed (m/s)", fill = "Person") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      scale_fill_manual(values = people_colors)
+  })
+  
+  
+  output$transportSpeedBoxPlot2 <- renderPlot({
+    
+    podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic) %>%
+      mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
+             Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+      filter(person %in% input$People, distance >= 1) %>%
+      mutate(activity2 = case_when(
+        activity == "CYCLING" ~ "cycling",
+        activity == "IN_PASSENGER_VEHICLE" ~ "in car",
+        activity == "in passenger vehicle" ~ "in car",
+        activity == "IN_SUBWAY" ~ "in subway",
+        activity == "IN_TRAM" ~ "in tram",
+        activity == "WALKING" ~ "walking",
+        activity == "IN_TRAIN" ~ "in train",
+        TRUE ~ activity
+      )) %>%
+      filter(activity2 == input$TransportType)
+    
+    people_colors <- c(
+      "Klaudia" = "#1ea362",
+      "Michal" = "#4a89f3",
+      "Jozef" = "#dd4b3e"
+    )
+    
+    ggplot(podroze2, aes(x = person, y = as.numeric(distance) / as.numeric(timeDurSec), fill = person)) +
+      geom_boxplot() +
+      theme_minimal() +
+      labs(title = paste("Average Speed Comparison by Person -", input$TransportType),
+           x = "Person", y = "Average Speed (m/s)", fill = "Person") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      scale_fill_manual(values = people_colors)
+  })
+  
+  
+  
+  output$transportSpeedText1 <- renderText({
+    paste0(input$People[0])
+  })
+  
+  output$transportSpeedText2 <- renderText({
+    paste0("As we can see noone likes trains except jozef on some days. As we c
+           an see noone likes trains except jozef on some days. As we can see no
+           one likes trains except jozef on some days. As we can see noone likes 
+           trains except jozef on some days")
+  })
+  
+  output$transportSpeedText3 <- renderText({
+    paste0("write me an interesting and smart sounding analysis of the heatmap in the picture showing how much a person walked in a certin day")
+  })
+  
+  
+  
+  
+  
+  output$transportSpeedHeatmap <- renderPlot({
+    all_weeks <- 1:6
+    all_days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    complete_data <- expand.grid(weekNum = all_weeks, Day = all_days)
+    
+    lighten_color <- function(color, factor) {
+      rgb_vals <- col2rgb(color) / 255  
+      white <- c(1, 1, 1) 
+      lighter_rgb <- rgb_vals * (1 - factor) + white * factor 
+      rgb(lighter_rgb[1], lighter_rgb[2], lighter_rgb[3]) 
+    }
+    
+    
+    max_people_colors <- list(
+      "Klaudia" = c("#1ea362"),
+      "Michal" = c("#4a89f3"),
+      "Jozef" = c("#dd4b3e")
+    )
+    
+   
+    people_colors <- lapply(max_people_colors, function(max_color) {
+      pastel_color <- lighten_color(max_color, factor = 0.95)  
+      c(pastel_color, max_color)
     })
+    
+    # Resulting color list with minimum (lighter) and maximum colors
+    names(people_colors) <- names(max_people_colors)
+    
+    
+    
+    podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic) %>%
+      mutate(activity = case_when(
+        activity == "CYCLING" ~ "cycling",
+        activity == "IN_PASSENGER_VEHICLE" ~ "in car",
+        activity == "in passenger vehicle" ~ "in car",
+        activity == "IN_SUBWAY" ~ "in subway",
+        activity == "IN_TRAM" ~ "in tram",
+        activity == "WALKING" ~ "walking",
+        activity == "IN_TRAIN" ~ "in train",
+        TRUE ~ activity
+      )) %>%
+      filter(activity == input$TransportType) %>% 
+      mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
+             Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+      mutate(distance = as.numeric(distance)) %>% 
+      filter(person == input$selectedPerson2, distance >= 1) %>% 
+      group_by(person, Day, weekNum) %>% 
+      mutate(distanceSum = sum(distance)) %>% 
+      ungroup() %>% 
+      select(Day, weekNum, distanceSum) %>% 
+      group_by(Day, weekNum, distanceSum) %>% 
+      slice(1)
+    
+    person_color = case_when(
+      input$selectedPerson2 == "Jozef" ~ people_colors$Jozef,
+      input$selectedPerson2 == "Klaudia" ~ people_colors$Klaudia,
+      input$selectedPerson2 == "Michal" ~ people_colors$Michal
+    )
+    
+    podroze2 <- merge(complete_data, podroze2, by = c("weekNum", "Day"), all.x = TRUE)
+    #write.csv(podroze2, "df.csv", row.names = FALSE)
+    podroze2[is.na(podroze2$distanceSum),"distanceSum"] <- 0
+    #write.csv(podroze2, "df2.csv", row.names = FALSE)
+    ggplot(podroze2 , aes(x = Day, y = weekNum, fill = distanceSum)) +
+      geom_tile(color = "white") +
+      scale_fill_gradient(low = person_color[1], high = person_color[2], name = "Distance (m)") +
+      labs(title = paste0("Distance ", input$TransportType ," over 6 Weeks by ", input$selectedPerson2), x = "Day of Week", y = "Week") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    
+    
+  })
   
   
     ################################# Mapa #####################################
@@ -456,3 +642,4 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
