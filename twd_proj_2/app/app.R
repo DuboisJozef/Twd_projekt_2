@@ -17,6 +17,7 @@ library(tidyr)
 library(bslib)
 library(shinythemes)
 library(shinymaterial)
+library(shinyjs)
 
 
 lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
@@ -183,6 +184,7 @@ ui <- fluidPage(
     heading_font = font_google("Product Sans")  
   ),
   
+  
   tags$style(HTML("
   body {
     background-color: #f5f5f5;
@@ -288,6 +290,7 @@ output$startPage <- renderUI({
 
 output$mainApp <- renderUI({
   if (!values$showStartPage) {
+    
     tagList(
       
       tags$head(
@@ -295,13 +298,6 @@ output$mainApp <- renderUI({
       ),
       
       tags$style(HTML("
-
-        #person_icon {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        padding: 10px;
-        }
         
         .nav-tabs {
           display: block;
@@ -320,49 +316,55 @@ output$mainApp <- renderUI({
         .tab-content-wrapper {
           background-color: #333; 
         }
-
-        }
-
-        ")),
-      
-      tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
-      
-      titlePanel(
         
-        h1(style = "font-size: 60px; font-weight: 1000; padding: 10px",
-           
-           HTML(
-             
-             paste0(
-               
-               # Google colors to each letter
-               paste0(
-                 '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
-                 '<span style="color: #0f9d58;">', substr("Map My Moments", 2, 2), '</span>',
-                 '<span style="color: #FBBC05;">', substr("Map My Moments", 3, 3), '</span>',
-                 
-                 '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
-                 
-                 '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
-                 '<span style="color: #0f9d58;">', substr("Map My Moments", 6, 6), '</span>',
-                 
-                 '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
-                 
-                 '<span style="color: #E94335;">', substr("Map My Moments", 8, 8), '</span>',
-                 '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
-                 '<span style="color: #0f9d58;">', substr("Map My Moments", 10, 10), '</span>',
-                 '<span style="color: #FBBC05;">', substr("Map My Moments", 11, 11), '</span>',
-                 '<span style="color: #E94335;">', substr("Map My Moments", 12, 12), '</span>',
-                 '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
-                 '<span style="color: #0f9d58;">', substr("Map My Moments", 14, 14), '</span>'
+       
+      .checkbox-group-wrapper {
+        position: absolute;
+        top: 10px; 
+        right: -996px; 
+        padding: 10px;
+        z-index: 9999; 
+      }
+                      
+      
+
+      ")),
+      
+      fluidRow(
+        column(12, 
+               titlePanel(
+                 h1(style = "font-size: 60px; font-weight: 1000; padding: 10px;",
+                    HTML(paste0(
+                      # Google colors to each letter
+                      paste0('<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
+                             '<span style="color: #0f9d58;">', substr("Map My Moments", 2, 2), '</span>',
+                             '<span style="color: #FBBC05;">', substr("Map My Moments", 3, 3), '</span>',
+                             '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
+                             '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
+                             '<span style="color: #0f9d58;">', substr("Map My Moments", 6, 6), '</span>',
+                             '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
+                             '<span style="color: #E94335;">', substr("Map My Moments", 8, 8), '</span>',
+                             '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
+                             '<span style="color: #0f9d58;">', substr("Map My Moments", 10, 10), '</span>',
+                             '<span style="color: #FBBC05;">', substr("Map My Moments", 11, 11), '</span>',
+                             '<span style="color: #E94335;">', substr("Map My Moments", 12, 12), '</span>',
+                             '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
+                             '<span style="color: #0f9d58;">', substr("Map My Moments", 14, 14), '</span>'
+                      )))
+                 )
                )
-               
-             )
-             
-           )
-        )
+        ),
         
-      ),
+        div(class = "checkbox-group-wrapper",
+            checkboxGroupInput(
+              inputId = "PeopleMap",
+              label = NULL,
+              choices = c("Józef", "Klaudia", "Michał"),
+              selected = c("Józef", "Klaudia", "Michał"),
+              inline = TRUE,
+              width = "100%"
+            )
+        ),
       
       tabsetPanel(
         type = "tabs",
@@ -469,7 +471,7 @@ output$mainApp <- renderUI({
           fluidRow(
             column(
               12,
-              leafletOutput("map", width = "100%", height = "500px")
+              leafletOutput("map", width = "70%", height = "500px")
             )
           ),
           
@@ -482,24 +484,18 @@ output$mainApp <- renderUI({
                    )
             ),
             column(4,
-                   selectInput(
-                     inputId = "PeopleMap",
-                     label = "Select people:",
-                     choices = c("Jozef", "Klaudia", "Michal"),
-                     selected = c("Jozef", "Klaudia", "Michal"),
-                     multiple = TRUE
-                   )
-            ),
-            column(4,
-                   sliderInput(
+                   numericInput(
                      inputId = "topPlacesCountMap",
                      label = "Select number of top places to display:",
-                     min = 1, max = 20, value = 5, step = 1
+                     value = 5,
+                     min = 1,
+                     max = 20
                    )
+                   
             )
           )
         )
-        
+      )
         
       )
     )
@@ -513,7 +509,7 @@ observeEvent(input$startBtn, {
     values$showStartPage <- FALSE
     shinyjs::show("loading")
     
-    Sys.sleep(2)
+    Sys.sleep(1)
     
     shinyjs::hide("loading")
   
@@ -528,8 +524,8 @@ observeEvent(input$startBtn, {
     
     # Filter data for the selected person and week (if specified)
     personData <- switch(input$selectedPerson,
-                         "Jozef" = podroze_joz,
-                         "Michal" = podroze_mic,
+                         "Józef" = podroze_joz,
+                         "Michał" = podroze_mic,
                          "Klaudia" = podroze_kla)
     
     if (input$selectedWeek != "Overall") {
@@ -698,6 +694,8 @@ observeEvent(input$startBtn, {
   
     # map
     output$map <- renderLeaflet({
+      Sys.sleep(1)
+      
       data_filtered <- filtered_data()
       
       top_n <- input$topPlacesCountMap

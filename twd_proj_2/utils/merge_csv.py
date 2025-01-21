@@ -13,10 +13,11 @@ def add_place_names(name):
 
 def merge_csv_with_place_names():
     df_kl = add_place_names("kl")
-    df_mi = df_kl.replace("kl", "mi")
-    df_jo = df_kl.replace("kl", "jo")
+    df_jo = add_place_names("jo")
 
-    # df_jo = add_place_names("jo")
+    df_mi = df_kl.replace("kl", "mi")
+
+
     # df_mi = add_place_names("mi")
     # TODO: Uncomment above lines when the files are ready
 
