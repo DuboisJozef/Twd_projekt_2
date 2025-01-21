@@ -17,6 +17,10 @@ library(tidyr)
 library(bslib)
 library(shinythemes)
 library(shinymaterial)
+library(ggradar)
+library(scales)
+library(fmsb)
+
 
 
 lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
@@ -387,8 +391,9 @@ output$mainApp <- renderUI({
                )
              ),
              mainPanel(
-               plotOutput("transportCountPlot"),
+               plotOutput("dotPlot"),
                plotOutput("transportTimePlot")
+               plotOutput("")
              )
            )
           
@@ -522,34 +527,78 @@ observeEvent(input$startBtn, {
   
   ######################### Rodzaj Transportu ##################################
   
-  output$transportCountPlot <- renderPlot({
-    
-    # Filter data for the selected person and week (if specified)
-    personData <- switch(input$selectedPerson,
-                         "Jozef" = podroze_joz,
-                         "Michal" = podroze_mic,
-                         "Klaudia" = podroze_kla)
-    
-    if (input$selectedWeek != "Overall") {
-      personData <- personData %>% filter(weekNum == as.numeric(input$selectedWeek))
-    }
-    
-    # Summarize the count of each transportation type
-    transportCounts <- personData %>%
-      group_by(activity) %>%
-      summarise(count = n()) %>%
-      arrange(desc(count))
-    
-    # Plot transportation counts
-    ggplot(transportCounts, aes(x = reorder(activity, -count), y = count, fill = activity)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(title = paste("Most Frequently Used Transport (Count) -",
-                         ifelse(input$selectedWeek == "Overall", "Overall", paste("Week", input$selectedWeek)),
-                         "-", input$selectedPerson),
-           x = "Transportation Type", y = "Count", fill = "Transport") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  })
+output$dotPlot <- renderPlot({
+  # 1) Identify the full dataset for the selected person (unfiltered)
+  full_data <- switch(
+    input$selectedPerson,
+    "Jozef"   = podroze_joz,
+    "Michal"  = podroze_mic,
+    "Klaudia" = podroze_kla
+  )
+  
+  # 2) Get all possible transport modes for this person
+  all_activities <- unique(full_data$activity)
+  
+  # 3) Now filter by week *if not Overall* to get the data we'll actually plot
+  if (input$selectedWeek != "Overall") {
+    person_data <- full_data %>%
+      dplyr::filter(weekNum == as.numeric(input$selectedWeek))
+  } else {
+    person_data <- full_data
+  }
+  
+  # 4) Group the filtered data by activity and create a stack index
+  #    If a particular activity has no rows in this filtered subset,
+  #    there will be no rows to stack for that activity.
+  person_data_stacked <- person_data %>%
+    dplyr::group_by(activity) %>%
+    dplyr::mutate(countIndex = dplyr::row_number()) %>%
+    dplyr::ungroup()
+  
+  # 5) Find the maximum stacked count for any category (for y-axis upper limit)
+  max_count <- person_data_stacked %>%
+    dplyr::count(activity) %>%
+    dplyr::pull(n) %>%
+    max(., na.rm = TRUE)
+  
+  # If there is no data (e.g., user picks a week with zero trips),
+  # we can default max_count to 0 to avoid errors.
+  if (is.infinite(max_count) || max_count < 1) {
+    max_count <- 0
+  }
+  
+  # 6) Plot using x=activity, y=countIndex (stack position)
+  ggplot(person_data_stacked, aes(x = activity, y = countIndex)) +
+    geom_point(
+      size  = 3,
+      alpha = 0.8,
+      color = "#4285F4"   # Google-blue color
+    ) +
+    # Force x-axis to show *all* activities (even those missing in this subset)
+    scale_x_discrete(limits = all_activities) +
+    # Y-axis setup
+    scale_y_continuous(
+      # Example: show breaks every 5 up to max_count, plus 1 if small
+      breaks = if (max_count <= 5) {
+        0:max_count
+      } else {
+        seq(0, max_count, by = 5)
+      },
+      limits = c(0, max_count + 0.5)  # a little padding above
+    ) +
+    labs(
+      title = "Stacked Dot Plot of Transportation",
+      x     = "Transport Type",
+      y     = "Count"
+    ) +
+    theme_minimal() +
+    theme(
+      panel.grid.major.y = element_line(color = "gray80", size = 0.5),
+      panel.grid.minor.y = element_blank(),
+      axis.text.y  = element_text(size = 10),
+      axis.text.x  = element_text(size = 10, angle = 45, hjust = 1)
+    )
+})
   
   output$transportTimePlot <- renderPlot({
     
@@ -578,6 +627,84 @@ observeEvent(input$startBtn, {
                          "-", input$selectedPerson),
            x = "Transportation Type", y = "Time (Hours)", fill = "Transport") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+  
+  
+  
+  output$spiderPlot <- renderPlot({
+    # 1) Pobierz pełny dataset dla wybranej osoby
+    full_data <- switch(
+      input$selectedPerson,
+      "Jozef"   = podroze_joz,
+      "Michal"  = podroze_mic,
+      "Klaudia" = podroze_kla
+    )
+    
+    # 2) Filtrowanie tygodnia (jeśli wybrano konkretny, a nie "Overall")
+    if (input$selectedWeek != "Overall") {
+      full_data <- full_data %>% 
+        dplyr::filter(weekNum == as.numeric(input$selectedWeek))
+    }
+    
+    # 3) Zlicz ile razy użyto danego środka transportu
+    transport_counts <- full_data %>%
+      dplyr::count(activity) %>%
+      dplyr::arrange(activity)
+    
+    # Sprawdź, czy cokolwiek mamy
+    if (nrow(transport_counts) == 0) {
+      plot.new()
+      text(0.5, 0.5, "Brak danych dla wybranego zestawu.", cex = 1.2)
+      return()
+    }
+    
+    # 4) Szeroki format: jedna kolumna = jeden rodzaj transportu
+    #    Jedna seria (wiersz) = dane naszej osoby.
+    #    Używamy pivot_wider() aby kolumnami były rodzaje transportu.
+    wide_df <- transport_counts %>%
+      tidyr::pivot_wider(
+        names_from = activity,  # nazwy kolumn będą nazwami aktywności
+        values_from = n,        # wartości w komórkach = liczba wystąpień
+        values_fill = 0         # jeśli brak, to wstaw 0
+      )
+    
+    # 5) Wyznacz wartości minimalne i maksymalne.
+    #    Dla fmsb musimy dodać 2 wiersze: min i max.
+    max_val <- max(wide_df, na.rm = TRUE)
+    
+    # Jeśli mamy tylko 1 kolumnę, fmsb też zadziała, ale będzie to pojedynczy „promień”.
+    # wide_df to 1 wiersz (nasze dane). Dodajemy 2 wiersze na górze:
+    df_for_radar <- rbind(
+      rep(max_val, ncol(wide_df)),  # wiersz max
+      rep(0,       ncol(wide_df)),  # wiersz min
+      wide_df                        # właściwe dane
+    )
+    
+    # fmsb wymaga, by nazwy kolumn były w df; ewentualnie (opcjonalnie) dodajemy row.names
+    rownames(df_for_radar) <- c("MAX", "MIN", "DATA")
+    
+    
+    #helper function
+    create_beautiful_radarchart <- function(data, color = "#4285F4", 
+                                            vlabels = colnames(data), vlcex = 0.7,
+                                            caxislabels = NULL, title = NULL, ...){
+      radarchart(
+        data, axistype = 1,
+        # Customize the polygon
+        pcol = color, pfcol = scales::alpha(color, 0.5), plwd = 2, plty = 1,
+        # Customize the grid
+        cglcol = "grey", cglty = 1, cglwd = 0.8,
+        # Customize the axis
+        axislabcol = "grey", 
+        # Variable labels
+        vlcex = vlcex, vlabels = vlabels,
+        caxislabels = caxislabels, title = title, ...
+      )
+    }
+    
+    
+    # 6) Rysujemy radar chart
+    create_beautiful_radarchart(df_for_radar, title = "Transport Modes - Radar Chart")
   })
 
   
