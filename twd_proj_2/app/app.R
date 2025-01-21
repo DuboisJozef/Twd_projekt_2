@@ -25,6 +25,7 @@ lok_kla <- fromJSON(file = "../data/Os_czasu_kl.json")
 
 # read merged df
 merged_df <- read.csv("../data/merged_data.csv")
+lok_names <- read.csv("../data/lok_names.csv")
 
 Sys.setlocale("LC_TIME", "C")
 
@@ -70,8 +71,8 @@ miejsca <- function(x){
       
       
       for(j in 1:day_diff){
-        result <- rbind(result, data.frame(place = ifelse(sum(merged_df$placeID == x[[i]]$visit$topCandidate$placeID) == 1,merged_df[merged_df$placeID == x[[i]]$visit$topCandidate$placeID,"name"], "other"),
-                                           activity_type = ifelse(sum(merged_df$placeID == x[[i]]$visit$topCandidate$placeID) == 1,merged_df[merged_df$placeID == x[[i]]$visit$topCandidate$placeID,"category"], "other"),
+        result <- rbind(result, data.frame(place = ifelse(sum(lok_names$placeID == x[[i]]$visit$topCandidate$placeID) == 1,lok_names[lok_names$placeID == x[[i]]$visit$topCandidate$placeID,"name"], "other"),
+                                           activity_type = ifelse(sum(lok_names$placeID == x[[i]]$visit$topCandidate$placeID) == 1,lok_names[lok_names$placeID == x[[i]]$visit$topCandidate$placeID,"category"], "other"),
                                            startTime = case_when(j == 1 ~ substr(x[[i]]$startTime, 1, 19),
                                                                  TRUE ~ paste0(as.character(tail(seq(as.POSIXct(substr(x[[i]]$startTime, 1, 19), format = "%Y-%m-%d"), by= "day", length = j), n = 1)), "T00:00:00")), 
                                            endTime = case_when(j == day_diff ~ substr(x[[i]]$endTime, 1, 19),
@@ -603,9 +604,9 @@ observeEvent(input$startBtn, {
     
     activity_colors <- c(
       "home" = "#1ea362",
-      "studies" = "#4a89f3",
+      "university" = "#4a89f3",
       "transport" = "#dd4b3e",
-      "entertainment" = "#d3d3d3",
+      "entertainment" = "#ffff90",
       "shopping" = "#ffe047",
       "restaurants" = "#aadaff",
       "other" = "#ff0000"
@@ -635,7 +636,6 @@ observeEvent(input$startBtn, {
       ungroup() %>% 
       select(dayOfWeek, activity_type, meanTimeDur) %>% 
       group_by(dayOfWeek, activity_type, meanTimeDur) %>% 
-      mutate(activity_type = ifelse(activity_type == "holiday_home", "home", activity_type)) %>% 
       slice(1)
     
     czas <- rbind(czas_miejsca, czas_w_transporcie)
@@ -649,7 +649,11 @@ observeEvent(input$startBtn, {
       ylab("% of time of day") +                      
       ggtitle(paste0("Average daily time spent in each place by ", input$dropdown1)) +     
       theme_minimal()+
-      scale_fill_manual(values = activity_colors)
+      scale_fill_manual(values = activity_colors) +
+      theme(
+        panel.background = element_rect(fill = "#f5f5f5", color = NA), 
+        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
+      )
     
     wyk2
   })
@@ -688,7 +692,11 @@ observeEvent(input$startBtn, {
       labs(title = paste("Speed Distribution by Weekday and Person -", input$TransportType),
            x = "Weekday", y = "Speed (m/s)", fill = "Person") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-      scale_fill_manual(values = people_colors)
+      scale_fill_manual(values = people_colors) +
+      theme(
+        panel.background = element_rect(fill = "#f5f5f5", color = NA), 
+        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
+      )
   })
   
   
@@ -722,7 +730,11 @@ observeEvent(input$startBtn, {
       labs(title = paste("Average Speed Comparison by Person -", input$TransportType),
            x = "Person", y = "Average Speed (m/s)", fill = "Person") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-      scale_fill_manual(values = people_colors)
+      scale_fill_manual(values = people_colors) +
+      theme(
+        panel.background = element_rect(fill = "#f5f5f5", color = NA), 
+        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
+      )
   })
   
   
@@ -767,7 +779,7 @@ observeEvent(input$startBtn, {
     
     
     people_colors <- lapply(max_people_colors, function(max_color) {
-      pastel_color <- lighten_color(max_color, factor = 0.95)  
+      pastel_color <- lighten_color(max_color, factor = 0.85)  
       c(pastel_color, max_color)
     })
     
@@ -812,7 +824,11 @@ observeEvent(input$startBtn, {
       scale_fill_gradient(low = person_color[1], high = person_color[2], name = "Distance (m)") +
       labs(title = paste0("Distance ", input$TransportType ," over 6 Weeks by ", input$selectedPerson2), x = "Day of Week", y = "Week") +
       theme_minimal() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      theme(
+        panel.background = element_rect(fill = "#f5f5f5", color = NA), 
+        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
+      )
     
     
   })
