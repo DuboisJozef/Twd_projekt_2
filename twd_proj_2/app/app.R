@@ -490,11 +490,11 @@ server <- function(input, output, session) {
             ),
             
             mainPanel(
-              style = "flex-grow: 1; width: 90%; padding: 20px; height: 1000px",
+              style = "flex-grow: 1; width: 90%; padding: 20px; height: 1200px",
               fluidRow(
                 # LEWA kolumna Spider Plot
                 column(
-                  width = 6,
+                  width = 3,
                   plotOutput("spiderPlot")
                 ),
                 
@@ -684,13 +684,16 @@ server <- function(input, output, session) {
       scale_color_manual(values = person_colors) +
       theme_minimal(base_family = "sans", base_size = 14) +   # <-- USTAWIENIE CZCIONKI I ROZMIARU
       labs(
-        title = "Dot Plot of Trips (One dot per instance)",
+        title = paste0("Dot Plot of Types of Used Transport (Count) - Weeks ",
+                       paste(input$sliderWeekTransport, collapse = "-")),
         x     = "Transport Type",
         y     = "Count Index"
       ) +
       theme(
+        panel.background = element_rect(fill = "#f5f5f5", color = NA), 
+        plot.background = element_rect(fill = "#f5f5f5", color = NA),
         axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.title = element_blank()
+        legend.title = element_blank(),
       )
   })
   
@@ -707,8 +710,8 @@ server <- function(input, output, session) {
     
     # Filtrujemy
     filtered_data <- all_data %>%
-      dplyr::filter(person %in% input$People) %>%
-      dplyr::filter(weekNum >= input$sliderWeekTransport[1],
+      filter(person %in% input$People) %>%
+      filter(weekNum >= input$sliderWeekTransport[1],
                     weekNum <= input$sliderWeekTransport[2])
     
     # Gdy brak danych
@@ -725,8 +728,8 @@ server <- function(input, output, session) {
     
     # Podsumowujemy czas per (activity, person)
     transportTime <- filtered_data %>%
-      dplyr::group_by(activity, person) %>%
-      dplyr::summarise(totalTime = sum(timeDurSec, na.rm = TRUE), .groups = "drop")
+      group_by(activity, person) %>%
+      summarise(totalTime = sum(timeDurSec, na.rm = TRUE), .groups = "drop")
     
     # Uzupełniamy brakujące kombinacje (aktywnosc, osoba) zerem
     transportTime <- transportTime %>%
@@ -753,6 +756,8 @@ server <- function(input, output, session) {
         y = "Time (Hours)"
       ) +
       theme(
+        panel.background = element_rect(fill = "#f5f5f5", color = NA), 
+        plot.background = element_rect(fill = "#f5f5f5", color = NA),
         axis.text.x      = element_text(angle = 45, hjust = 1),
         legend.title     = element_blank(),
         panel.grid.minor = element_blank()
@@ -765,7 +770,7 @@ server <- function(input, output, session) {
   
   output$spiderPlot <- renderPlot(
     height = function() {
-      275 * max(length(input$People), 1)
+      340 * max(length(input$People), 1)
     },
     {
       
@@ -822,11 +827,13 @@ server <- function(input, output, session) {
       persons_selected <- unique(filtered_data$person)
       
       # ustawienia ukladu
+      # ustawienia ukladu
       par(
         mfrow  = c(length(persons_selected), 1),
-        mar    = c(3,3,3,3),
-        family = "sans",  # <-- rodzina czcionki
-        cex    = 1.2        # <-- globalne powiększenie tekstu
+        mar    = c(3, 3, 3, 3),
+        family = "sans",
+        cex    = 1.2,     
+        bg     = "#f5f5f5"    
       )
       
       # petla po osobach
