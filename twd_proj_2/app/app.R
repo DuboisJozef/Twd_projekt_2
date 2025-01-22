@@ -369,7 +369,7 @@ server <- function(input, output, session) {
             width: 100% !important; /* Ensure tab content uses full width */
           }
         ")),
-                  tags$style(HTML("
+           tags$style(HTML("
             .shiny-input-container {
               position: relative;
             }
@@ -433,19 +433,23 @@ server <- function(input, output, session) {
               fluidRow(
                 # LEWA kolumna Spider Plot
                 column(
-                  width = 3,
+                  width = 4,
                   plotOutput("spiderPlot")
                 ),
 
                 # PRAWA kolumna: DotPlot + TransportTimePlot
                 column(
-                  width = 6,
+                  width = 8,
                   plotOutput("dotPlot"),
                   plotOutput("transportTimePlot")
                 )
               )
             )
+            
           ),
+          
+          
+          
 
           tabPanel(
             title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/7552/7552703.png", height = "40px", width = "40px"),
@@ -841,7 +845,7 @@ server <- function(input, output, session) {
     paste0("This stacked barplot shows where ", input$dropdown1, " spends their average day of the week. 
        These places have been grouped into a set of categories: shopping includes all the time spent buying groceries or new clothes; 
        restaurants include coffee shops and bakeries; university refers to all the buildings of the Warsaw University of Technology; 
-       home includes vacation homes; entertainment encompasses sports, movie theaters, and similar activities; 
+       home includes vacation homes; entertainment encompasses sports, movie theaters, and similar activities
        and transport is the time spent traveling.")
   })
   
@@ -914,7 +918,7 @@ server <- function(input, output, session) {
         axis.text = element_text(size = 15),       
         legend.text = element_text(size = 15),
         legend.title = element_text(size = 20),
-        axis.text.x = element_text(angle = 45, hjust = 1)
+        axis.text.x = element_text(angle = 0, hjust = 0.5)
       ) +
       scale_y_continuous(labels = scales::percent)
     
