@@ -441,10 +441,15 @@ server <- function(input, output, session) {
                 column(
                   width = 8,
                   plotOutput("dotPlot"),
-                  plotOutput("transportTimePlot")
+                  plotOutput("transportTimePlot"),
+                  textOutput("transport_text")
                 )
+                
+                
               )
             )
+            
+            
             
           ),
           
@@ -724,6 +729,11 @@ server <- function(input, output, session) {
       )
   })
   
+  
+  output$transport_text <- renderText({
+    "Michal demonstrates the most diverse transport habits, with a notable emphasis on cycling alongside frequent use of subways and passenger vehicles. Klaudia relies predominantly on walking and subways, mirroring Jozef’s reliance on walking as a primary mode of transport. Over time, Klaudia’s transport profile aligns more closely with Jozef’s, while Michal’s balanced and active transport style remains distinct."
+  })
+  
   #####################
   #### Spider Plot ####
   #####################
@@ -958,7 +968,7 @@ server <- function(input, output, session) {
       theme_minimal() +
       labs(title = paste("Speed Distribution by Weekday and Person -", input$TransportType),
            x = "Weekday", y = "Speed (m/s)", fill = "Person") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      theme(axis.text.x = element_text(angle = 0, hjust = 0.5)) +
       scale_fill_manual(values = people_colors) +
       theme(
         panel.background = element_rect(fill = "#f5f5f5", color = NA), 
@@ -1002,7 +1012,7 @@ server <- function(input, output, session) {
       theme_minimal() +
       labs(title = paste("Speed Comparison by Person -", input$TransportType),
            x = "Person", y = "Speed (m/s)", fill = "Person") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      theme(axis.text.x = element_text(angle = 0, hjust = 1)) +
       scale_fill_manual(values = people_colors) +
       theme(
         panel.background = element_rect(fill = "#f5f5f5", color = NA), 
