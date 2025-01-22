@@ -6,10 +6,13 @@
 #
 #    http://shiny.rstudio.com/
 #
-
+options(warn = -1)
+options(shiny.suppressAllPackageMessages = TRUE)
+suppressMessages({
+  library(dplyr)
+})
 library(shiny)
 library(rjson)
-library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(leaflet)
