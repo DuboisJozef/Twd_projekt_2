@@ -86,7 +86,7 @@ miejsca <- function(x){
   }
   result
 }
-
+{
 podroze_joz <- transport(lok_joz) %>% 
   mutate(timeDurSec = as.integer(difftime(as.POSIXct(substr(endTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"),
                                           as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
@@ -142,7 +142,7 @@ wizyty_kla <- miejsca(lok_kla) %>%
   mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
   mutate(person = "Klaudia")
 
-
+}
 # input$People <- c("Klaudia", "Jozef", "Michal")
 
 ######################################################################UI######################################################################
@@ -360,9 +360,17 @@ output$mainApp <- renderUI({
                           choices = c("Jozef", "Michal", "Klaudia"))
             ),
             mainPanel(
-              textOutput("weeklyActivitiesText1"),
-              plotOutput("dailyActivitiesPlot"),
-              
+              div(
+                style = "display: flex; flex-wrap: nowrap; align-items: center; gap: 20px;", 
+                div(
+                  style = "flex: 1;", 
+                  plotOutput("dailyActivitiesPlot")
+                ),
+                div(
+                  style = "flex: 0 1 auto; max-width: 300px; padding-left: 20px;", 
+                  textOutput("weeklyActivitiesText1")
+                )
+              )
             )
           )
          
@@ -413,21 +421,49 @@ output$mainApp <- renderUI({
                 choices = c("cycling", "in car", "in subway", "in tram", "walking", "in train"),
                 selected = "walking"
               )
-              ,
-              selectInput(
-                inputId = "selectedPerson2",
-                label = "Select Person:",
-                choices = c("Jozef", "Michal", "Klaudia"),
-                selected = "Jozef"
-              )
+              
             ),
             mainPanel(
-              textOutput("transportSpeedText1"),     
-              plotOutput("transportSpeedBoxPlot"),   
-              textOutput("transportSpeedText2"),  
-              plotOutput("transportSpeedBoxPlot2"),
-              textOutput("transportSpeedText3"),  
-              plotOutput("transportSpeedHeatmap"),
+              div(
+                style = "display: flex; align-items: center; gap: 30px; margin-bottom: 50px;", 
+                div(
+                  style = "flex: 0 1 auto; max-width: 300px; padding-right: 60px;",
+                  textOutput("transportSpeedText1")
+                ),
+                div(
+                  style = "flex: 1;", # Plot container
+                  plotOutput("transportSpeedBoxPlot")
+                )
+              ),
+              div(
+                style = "display: flex; align-items: center; width: 100%; margin-bottom: 50px;", 
+                div(
+                  style = "width: 80%;", 
+                  plotOutput("transportSpeedBoxPlot2")
+                ),
+                div(
+                  style = "margin-left: 60px;", 
+                  textOutput("transportSpeedText2")
+                )
+              ),
+              div(
+                style = "display: flex; align-items: flex-start; gap: 20px;", 
+                div(
+                  style = "flex: 0 1 300px; display: flex; flex-direction: column; gap: 10px;", 
+                  selectInput(
+                    inputId = "selectedPerson2",
+                    label = "Select Person:",
+                    choices = c("Jozef", "Michal", "Klaudia"),
+                    selected = "Jozef"
+                  ),
+                  textOutput("transportSpeedText3")
+                ),
+                div(
+                  style = "flex: 1;", 
+                  plotOutput("transportSpeedHeatmap", height = "500px")
+                )
+                
+              )
             )
           )
         ),
@@ -511,7 +547,7 @@ observeEvent(input$startBtn, {
     values$showStartPage <- FALSE
     shinyjs::show("loading")
     
-    Sys.sleep(2)
+    Sys.sleep(1)
     
     shinyjs::hide("loading")
   
@@ -584,10 +620,11 @@ observeEvent(input$startBtn, {
   ############################## Aktywności ####################################
   
     output$weeklyActivitiesText1 <- renderText({
-      paste0("As we can see noone likes trains except jozef on some days. As we c
-           an see noone likes trains except jozef on some days. As we can see no
-           one likes trains except jozef on some days. As we can see noone likes 
-           trains except jozef on some days")
+      paste0("This stacked barplot shows where ", input$dropdown1, " spends their average day of the week. 
+       These places have been grouped into a set of categories: shopping includes all the time spent buying groceries or new clothes; 
+       restaurants include coffee shops and bakeries; university refers to all the buildings of the Warsaw University of Technology; 
+       home includes vacation homes; entertainment encompasses sports, movie theaters, and similar activities; 
+       and transport is the time spent traveling.")
     })
   
   output$dailyActivitiesPlot <- renderPlot({
@@ -652,8 +689,16 @@ observeEvent(input$startBtn, {
       scale_fill_manual(values = activity_colors) +
       theme(
         panel.background = element_rect(fill = "#f5f5f5", color = NA), 
-        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
-      )
+        plot.background = element_rect(fill = "#f5f5f5", color = NA),
+        plot.title = element_text(size = 20),      
+        axis.title.x = element_text(size = 20),    
+        axis.title.y = element_text(size = 20),    
+        axis.text = element_text(size = 15),       
+        legend.text = element_text(size = 15),
+        legend.title = element_text(size = 20),
+        axis.text.x = element_text(angle = 45, hjust = 1)
+      ) +
+      scale_y_continuous(labels = scales::percent)
     
     wyk2
   })
@@ -695,7 +740,13 @@ observeEvent(input$startBtn, {
       scale_fill_manual(values = people_colors) +
       theme(
         panel.background = element_rect(fill = "#f5f5f5", color = NA), 
-        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
+        plot.background = element_rect(fill = "#f5f5f5", color = NA),
+        plot.title = element_text(size = 20),      
+        axis.title.x = element_text(size = 20),    
+        axis.title.y = element_text(size = 20),    
+        axis.text = element_text(size = 15),       
+        legend.text = element_text(size = 15),
+        legend.title = element_text(size = 20)
       )
   })
   
@@ -727,20 +778,25 @@ observeEvent(input$startBtn, {
     ggplot(podroze2, aes(x = person, y = as.numeric(distance) / as.numeric(timeDurSec), fill = person)) +
       geom_boxplot() +
       theme_minimal() +
-      labs(title = paste("Average Speed Comparison by Person -", input$TransportType),
-           x = "Person", y = "Average Speed (m/s)", fill = "Person") +
+      labs(title = paste("Speed Comparison by Person -", input$TransportType),
+           x = "Person", y = "Speed (m/s)", fill = "Person") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       scale_fill_manual(values = people_colors) +
       theme(
         panel.background = element_rect(fill = "#f5f5f5", color = NA), 
-        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
+        plot.background = element_rect(fill = "#f5f5f5", color = NA),
+        plot.title = element_text(size = 20),      
+        axis.title.x = element_text(size = 20),    
+        axis.title.y = element_text(size = 20),    
+        axis.text = element_text(size = 15),       
+        legend.position = "none"
       )
   })
   
   
   
   output$transportSpeedText1 <- renderText({
-    paste0(input$People[0])
+    paste0("jyefrbiuefbebf3 bfhrb4fhjrbfjbekw bfkeigniergblkerw fiuewbfuihe wfiuewbofw iuhe ewbf wefu web fweifb ewybf wefoeu eb fhewb uweuyw e ewuoyf ")
   })
   
   output$transportSpeedText2 <- renderText({
@@ -827,7 +883,13 @@ observeEvent(input$startBtn, {
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       theme(
         panel.background = element_rect(fill = "#f5f5f5", color = NA), 
-        plot.background = element_rect(fill = "#f5f5f5", color = NA)  
+        plot.background = element_rect(fill = "#f5f5f5", color = NA),
+        plot.title = element_text(size = 20),      
+        axis.title.x = element_text(size = 20),    
+        axis.title.y = element_text(size = 20),    
+        axis.text = element_text(size = 15),       
+        legend.text = element_text(size = 15),
+        legend.title = element_text(size = 20)
       )
     
     
