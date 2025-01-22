@@ -18,6 +18,7 @@ def merge_csv_with_place_names():
 
     df = pd.concat([df_kl, df_jo, df_mi])
 
+    df.drop_duplicates(inplace=True)
 
     df.to_csv("../data/merged_data.csv", index=False)
 
