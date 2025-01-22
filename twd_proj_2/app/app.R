@@ -98,7 +98,7 @@ miejsca <- function(x){
                                             as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                             units = "secs"))) %>% 
     mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
-    mutate(person = "Jozef")
+    mutate(person = "Józef")
   
   wizyty_joz <- miejsca(lok_joz) %>% 
     
@@ -108,7 +108,7 @@ miejsca <- function(x){
     group_by(place) %>% 
     mutate(sumTime = sum(timeDurSec)) %>% 
     mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
-    mutate(person = "Jozef")
+    mutate(person = "Józef")
   
   
   
@@ -117,7 +117,7 @@ miejsca <- function(x){
                                             as.POSIXct(substr(startTime, 1, 19), format = "%Y-%m-%dT%H:%M:%S"), #
                                             units = "secs"))) %>% 
     mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
-    mutate(person = "Michal")
+    mutate(person = "Michał")
   
   wizyty_mic <- miejsca(lok_mic) %>% 
     
@@ -127,7 +127,7 @@ miejsca <- function(x){
     group_by(place) %>% 
     mutate(sumTime = sum(timeDurSec)) %>% 
     mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>% 
-    mutate(person = "Michal")
+    mutate(person = "Michał")
   
   
   
@@ -149,7 +149,7 @@ miejsca <- function(x){
     mutate(person = "Klaudia")
   
 }
-# input$People <- c("Klaudia", "Jozef", "Michal")
+# input$People <- c("Klaudia", "Józef", "Michał")
 
 ######################################################################UI######################################################################
 
@@ -391,7 +391,7 @@ server <- function(input, output, session) {
               sliderInput("sliderWeek1", "Select weeks for the plot:",
                           min = 1, max = 6, value = c(1, 2), step = 1),
               selectInput("dropdown1", "Choose the person:",
-                          choices = c("Jozef", "Michal", "Klaudia"))
+                          choices = c("Józef", "Michał", "Klaudia"))
             ),
 
             mainPanel(
@@ -420,8 +420,8 @@ server <- function(input, output, session) {
               selectInput(
                 inputId = "People",
                 label = "Select people:",
-                choices = c("Jozef", "Klaudia", "Michal"),
-                selected = c("Klaudia", "Michal"),
+                choices = c("Józef", "Klaudia", "Michał"),
+                selected = c("Klaudia", "Michał"),
                 multiple = TRUE
               ),
               sliderInput("sliderWeekTransport", "Select weeks for the plot:",
@@ -456,8 +456,8 @@ server <- function(input, output, session) {
               selectInput(
                 inputId = "People",
                 label = "Select people:",
-                choices = c("Jozef", "Klaudia", "Michal"),
-                selected = c("Klaudia", "Michal"),
+                choices = c("Józef", "Klaudia", "Michał"),
+                selected = c("Klaudia", "Michał"),
                 multiple = TRUE
               ),
               selectInput(
@@ -499,8 +499,8 @@ server <- function(input, output, session) {
                   selectInput(
                     inputId = "selectedPerson2",
                     label = "Select Person:",
-                    choices = c("Jozef", "Michal", "Klaudia"),
-                    selected = "Jozef"
+                    choices = c("Józef", "Michał", "Klaudia"),
+                    selected = "Józef"
                   ),
                   textOutput("transportSpeedText3")
                 ),
@@ -552,8 +552,8 @@ server <- function(input, output, session) {
                        selectInput(
                          inputId = "PeopleMap",
                          label = "Select people:",
-                         choices = c("Jozef", "Klaudia", "Michal"),
-                         selected = c("Jozef", "Klaudia", "Michal"),
+                         choices = c("Józef", "Klaudia", "Michał"),
+                         selected = c("Józef", "Klaudia", "Michał"),
                          multiple = TRUE
                        )
                 ),
@@ -596,8 +596,8 @@ server <- function(input, output, session) {
   
   person_colors <- c(
     "Klaudia" = "#1ea362",
-    "Michal"  = "#4a89f3",
-    "Jozef"   = "#dd4b3e"
+    "Michał"  = "#4a89f3",
+    "Józef"   = "#dd4b3e"
   )
   
   #########################
@@ -846,7 +846,7 @@ server <- function(input, output, session) {
   })
   
   output$dailyActivitiesPlot <- renderPlot({
-    if(input$dropdown1 == "Jozef"){
+    if(input$dropdown1 == "Józef"){
       podroze <- podroze_joz
       wizyty <- wizyty_joz
     } else if(input$dropdown1 == "Klaudia"){
@@ -861,10 +861,10 @@ server <- function(input, output, session) {
       "home" = "#1ea362",
       "university" = "#4a89f3",
       "transport" = "#dd4b3e",
-      "entertainment" = "#ffff90",
+      "entertainment" = "#ED7014",
       "shopping" = "#ffe047",
       "restaurants" = "#aadaff",
-      "other" = "#ff0000"
+      "other" = "#5400CF"
     )
     
     czas_w_transporcie <- podroze %>%
@@ -944,8 +944,8 @@ server <- function(input, output, session) {
     
     people_colors <- c(
       "Klaudia" = "#1ea362",
-      "Michal" = "#4a89f3",
-      "Jozef" = "#dd4b3e"
+      "Michał" = "#4a89f3",
+      "Józef" = "#dd4b3e"
     )
     
     # Boxplot with people as color and weekdays on x-axis
@@ -989,8 +989,8 @@ server <- function(input, output, session) {
     
     people_colors <- c(
       "Klaudia" = "#1ea362",
-      "Michal" = "#4a89f3",
-      "Jozef" = "#dd4b3e"
+      "Michał" = "#4a89f3",
+      "Józef" = "#dd4b3e"
     )
     
     ggplot(podroze2, aes(x = person, y = as.numeric(distance) / as.numeric(timeDurSec), fill = person)) +
@@ -1061,8 +1061,8 @@ server <- function(input, output, session) {
     
     max_people_colors <- list(
       "Klaudia" = c("#1ea362"),
-      "Michal" = c("#4a89f3"),
-      "Jozef" = c("#dd4b3e")
+      "Michał" = c("#4a89f3"),
+      "Józef" = c("#dd4b3e")
     )
     
     
@@ -1100,9 +1100,9 @@ server <- function(input, output, session) {
       slice(1)
     
     person_color = case_when(
-      input$selectedPerson2 == "Jozef" ~ people_colors$Jozef,
+      input$selectedPerson2 == "Józef" ~ people_colors$Józef,
       input$selectedPerson2 == "Klaudia" ~ people_colors$Klaudia,
-      input$selectedPerson2 == "Michal" ~ people_colors$Michal
+      input$selectedPerson2 == "Michał" ~ people_colors$Michał
     )
     
     podroze2 <- merge(complete_data, podroze2, by = c("weekNum", "Day"), all.x = TRUE)
@@ -1131,7 +1131,7 @@ server <- function(input, output, session) {
   ################################# Mapa #####################################
   # filter data
   filtered_data <- reactive({
-    person_map <- c("Jozef" = "jo", "Michal" = "mi", "Klaudia" = "kl")
+    person_map <- c("Józef" = "jo", "Michał" = "mi", "Klaudia" = "kl")
     selected_people <- input$PeopleMap
     ppl_map <- person_map[selected_people]
     
