@@ -20,7 +20,7 @@ library(shinymaterial)
 library(scales)
 library(fmsb)
 library(rlang)
-library(showtext)
+
 
 
 
@@ -297,6 +297,7 @@ server <- function(input, output, session) {
         
         .tab-content {
           margin-left: 100px;
+          margin-right: 100px
         }
         
         .tab-content-wrapper {
@@ -317,70 +318,71 @@ server <- function(input, output, session) {
 
         ")),
         
+        
         tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
         
-        div(
-          class = "fixed-bottom-row",
-          fluidRow(
-            
-            # ten bez calendar
-            column(4,
-                   conditionalPanel(
-                    condition = "input.mainTabs !== 'calendar'",
-                   selectInput(
-                     inputId = "People",
-                     label = "Select people:",
-                     choices = c("Jozef", "Klaudia", "Michal"),
-                     selected = c("Jozef", "Klaudia", "Michal"),
-                     multiple = TRUE
-                   )
-            )
-            ),
-            
-            # bez transport
-            column(4,
-                   conditionalPanel(
-                     condition = "input.mainTabs !== 'transport'",
-                     sliderInput(
-                       "sliderWeekMap", 
-                       "Select weeks for the plot:",
-                       min = 1, max = 5, value = c(1, 2), step = 1
-                     )
-                   )
-            ),
-            
-            column(4,
-                   conditionalPanel(
-                     condition = "input.mainTabs === 'mapTab'",
-                     sliderInput(
-                       inputId = "topPlacesCountMap",
-                       label = "Select number of top places to display:",
-                       min = 1, max = 20, value = 5, step = 1
-                     )
-                   )
-            ),
-            column(4,
-                   conditionalPanel(
-                     condition = "input.mainTabs === 'calendar'",
-                     selectInput("dropdown1", "Choose the person:",
-                                 choices = c("Jozef", "Michal", "Klaudia"))
-                   )
-            ),
-            column(4,
-                   conditionalPanel(
-                     condition = "input.mainTabs === 'transport'",
-                     selectInput(
-                       inputId = "TransportType",
-                       label = "Select transport type:",
-                       choices = c("cycling", "in car", "in subway", "in tram", "walking", "in train"),
-                       selected = "walking"
-                     )
-                   )
-            )
-          
-            
-          )
-        ),
+        # div(
+        #   class = "fixed-bottom-row",
+        #   fluidRow(
+        #     
+        #     # ten bez calendar
+        #     column(4,
+        #            conditionalPanel(
+        #              condition = "input.mainTabs !== 'calendar'",
+        #              selectInput(
+        #                inputId = "People",
+        #                label = "Select people:",
+        #                choices = c("Jozef", "Klaudia", "Michal"),
+        #                selected = c("Jozef", "Klaudia", "Michal"),
+        #                multiple = TRUE
+        #              )
+        #            )
+        #     ),
+        #     
+        #     # bez transport
+        #     column(4,
+        #            conditionalPanel(
+        #              condition = "input.mainTabs !== 'transport'",
+        #              sliderInput(
+        #                "sliderWeekMap", 
+        #                "Select weeks for the plot:",
+        #                min = 1, max = 5, value = c(1, 2), step = 1
+        #              )
+        #            )
+        #     ),
+        #     
+        #     column(4,
+        #            conditionalPanel(
+        #              condition = "input.mainTabs === 'mapTab'",
+        #              sliderInput(
+        #                inputId = "topPlacesCountMap",
+        #                label = "Select number of top places to display:",
+        #                min = 1, max = 20, value = 5, step = 1
+        #              )
+        #            )
+        #     ),
+        #     column(4,
+        #            conditionalPanel(
+        #              condition = "input.mainTabs === 'calendar'",
+        #              selectInput("dropdown1", "Choose the person:",
+        #                          choices = c("Jozef", "Michal", "Klaudia"))
+        #            )
+        #     ),
+        #     column(4,
+        #            conditionalPanel(
+        #              condition = "input.mainTabs === 'transport'",
+        #              selectInput(
+        #                inputId = "TransportType",
+        #                label = "Select transport type:",
+        #                choices = c("cycling", "in car", "in subway", "in tram", "walking", "in train"),
+        #                selected = "walking"
+        #              )
+        #            )
+        #     )
+        #     
+        #     
+        #   )
+        # ),
         
         titlePanel(
           
@@ -420,160 +422,199 @@ server <- function(input, output, session) {
         ),
         
         tabsetPanel(
+          tags$style(HTML("
+  .tab-content {
+    width: 100% !important; /* Ensure full width */
+  }
+  .tab-pane {
+    width: 100% !important; /* Ensure tab content uses full width */
+  }
+")),
+          tags$style(HTML("
+    .shiny-input-container {
+      position: relative;
+    }
+    .shiny-input-container .selectize-dropdown {
+      position: absolute !important;
+      bottom: 100% !important;
+      top: auto !important;
+      margin-bottom: 5px;
+    }
+  ")),
           type = "tabs",
-          id = "mainTabs",
           
           tabPanel(
-            
-            value = 'calendar',
-
             title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/2773/2773319.png", height = "40px", width = "40px"),
             
-
- 
-              mainPanel(
-                div(
-                  style = "display: flex; flex-wrap: nowrap; align-items: center; gap: 20px;", 
-                  div(
-                    style = "flex: 1;", 
-                    plotOutput("dailyActivitiesPlot")
-                  ),
-                  div(
-                    style = "flex: 0 1 auto; max-width: 300px; padding-left: 20px;", 
-                    textOutput("weeklyActivitiesText1")
-                  )
-                )
-              )
-            
-            
-          ),
-          ##################################################
-          # 2) Drugi Tab (transport)
-          ##################################################
-          tabPanel(
-            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png",
-                             height = "40px", width = "40px"),
-            
-            # Główny układ: 2 kolumny obok siebie
-            fluidRow(
-              # LEWA kolumna Spider Plot
-              column(
-                width = 6,
-                plotOutput("spiderPlot")
-              ),
-              
-              # PRAWA kolumna: DotPlot + TransportTimePlot
-              column(
-                width = 6,
-                plotOutput("dotPlot"),
-                plotOutput("transportTimePlot")
-              )
+            div(
+              class = "fixed-bottom-row",
+              style = "display: flex; gap: 20px; height: 170px",
+              sliderInput("sliderWeek1", "Select weeks for the plot:",
+                          min = 1, max = 6, value = c(1, 2), step = 1),
+              selectInput("dropdown1", "Choose the person:",
+                          choices = c("Jozef", "Michal", "Klaudia"))
             ),
             
-            # PANEL PRZYKLEJONY NA DOLE - z inputami
-            fixedPanel(
-              bottom = 0, left = 0, right = 0,
-              style = "
-              padding: 10px; 
-              background-color: #f8f8f8; 
-              border-top: 1px solid #ccc; 
-              z-index: 1000;
-            ",
-              fluidRow(
-                column(
-                  width = 6,
-                  sliderInput(
-                    "sliderWeekTransport",
-                    "Select weeks for the plot:",
-                    min = 1, max = 5, value = c(1, 2), step = 1
-                  )
+            mainPanel(
+              
+              style = "flex-grow: 1; width: 90%; padding: 20px; height: 120px;",
+              div(
+                style = "display: flex; flex-direction: column; gap: 40px; align-items: stretch; width: 100%;", 
+                div(
+                  style = "text-align: center; width: 100%; padding: 50;", 
+                  textOutput("weeklyActivitiesText1")
                 ),
-                column(
-                  width = 6,
-                  selectInput(
-                    inputId = "People",
-                    label = "Select people:",
-                    choices = c("Jozef", "Klaudia", "Michal"),
-                    selected = c("Michal", "Klaudia"),
-                    multiple = TRUE
-                  )
+                div(
+                  style = "width: 100%; padding: 50;",
+                  plotOutput("dailyActivitiesPlot", width = "100%", height = "400px") # Adjust height as needed
                 )
               )
             )
           ),
           
           tabPanel(
+            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png", height = "40px", width = "40px"),
             
-            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/7552/7552703.png", height = "40px", width = "40px"),
-            value = 'transport',
+            div(
+              class = "fixed-bottom-row",
+              style = "display: flex; gap: 20px; height: 120px",
+              selectInput(
+                inputId = "People",
+                label = "Select people:",
+                choices = c("Jozef", "Klaudia", "Michal"),
+                selected = c("Klaudia", "Michal"),  
+                multiple = TRUE  
+              ),
+              sliderInput("sliderWeekTransport", "Select weeks for the plot:",
+                          min = 1, max = 6, value = c(1, 2), step = 1)
+            ),
             
-              mainPanel(
-                div(
-                  style = "display: flex; align-items: center; gap: 30px; margin-bottom: 50px;", 
-                  div(
-                    style = "flex: 0 1 auto; max-width: 300px; padding-right: 60px;",
-                    textOutput("transportSpeedText1")
-                  ),
-                  div(
-                    style = "flex: 1;", # Plot container
-                    plotOutput("transportSpeedBoxPlot")
-                  )
+            mainPanel(
+              style = "flex-grow: 1; width: 90%; padding: 20px; height: 1000px",
+              fluidRow(
+                # LEWA kolumna Spider Plot
+                column(
+                  width = 6,
+                  plotOutput("spiderPlot")
                 ),
-                div(
-                  style = "display: flex; align-items: center; width: 100%; margin-bottom: 50px;", 
-                  div(
-                    style = "width: 80%;", 
-                    plotOutput("transportSpeedBoxPlot2")
-                  ),
-                  div(
-                    style = "margin-left: 60px;", 
-                    textOutput("transportSpeedText2")
-                  )
-                ),
-                div(
-                  style = "display: flex; align-items: flex-start; gap: 20px;", 
-                  div(
-                    style = "flex: 0 1 300px; display: flex; flex-direction: column; gap: 10px;", 
-                    selectInput(
-                      inputId = "selectedPerson2",
-                      label = "Select Person:",
-                      choices = c("Jozef", "Michal", "Klaudia"),
-                      selected = "Jozef"
-                    ),
-                    textOutput("transportSpeedText3")
-                  ),
-                  div(
-                    style = "flex: 1;", 
-                    plotOutput("transportSpeedHeatmap", height = "500px")
-                  )
-                  
+                
+                # PRAWA kolumna: DotPlot + TransportTimePlot
+                column(
+                  width = 6,
+                  plotOutput("dotPlot"),
+                  plotOutput("transportTimePlot")
                 )
               )
-            
+            )
           ),
           
-          
-        
-          
+          tabPanel(
+            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/7552/7552703.png", height = "40px", width = "40px"),
+            
+            div(
+              class = "fixed-bottom-row",
+              style = "display: flex; gap: 20px; height: 120px",
+              selectInput(
+                inputId = "People",
+                label = "Select people:",
+                choices = c("Jozef", "Klaudia", "Michal"),
+                selected = c("Klaudia", "Michal"),  
+                multiple = TRUE  
+              ),
+              selectInput(
+                inputId = "TransportType",
+                label = "Select transport type:",
+                choices = c("cycling", "in car", "in subway", "in tram", "walking", "in train"),
+                selected = "walking"
+              )
+            ),
+            
+            mainPanel(
+              style = "flex-grow: 1; width: 90%; padding: 20px; height: 1700px",
+              div(
+                style = "display: flex; flex-direction: column; align-items: center; gap: 30px; margin-bottom: 50px;", 
+                div(
+                  style = "flex: 0 1 auto; text-align: center; padding-bottom: 20px;",
+                  textOutput("transportSpeedText1")
+                ),
+                div(
+                  style = "flex: 1; width: 100%;", # Plot container
+                  plotOutput("transportSpeedBoxPlot")
+                )
+              ),
+              div(
+                style = "display: flex; align-items: center; width: 100%; margin-bottom: 50px;", 
+                div(
+                  style = "width: 50%;", 
+                  plotOutput("transportSpeedBoxPlot2")
+                ),
+                div(
+                  style = "margin-left: 60px;", 
+                  textOutput("transportSpeedText2")
+                )
+              ),
+              div(
+                style = "display: flex; align-items: flex-start; gap: 20px;", 
+                div(
+                  style = "flex: 0 1 200px; display: flex; flex-direction: column; gap: 10px; width: 40%;", 
+                  selectInput(
+                    inputId = "selectedPerson2",
+                    label = "Select Person:",
+                    choices = c("Jozef", "Michal", "Klaudia"),
+                    selected = "Jozef"
+                  ),
+                  textOutput("transportSpeedText3")
+                ),
+                div(
+                  style = "flex: 2;",
+                  plotOutput("transportSpeedHeatmap", height = "500px")
+                )
+              )
+            )
+          ),
           
           tabPanel(
-            
             title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/854/854878.png", height = "40px", width = "40px"),
-            
-            value = 'mapTab',
             
             fluidRow(
               column(
                 12,
                 leafletOutput("map", width = "100%", height = "500px")
               )
-            )
+            ),
             
-   
+            div(
+              class = "fixed-bottom-row",
+              style = "display: flex; gap: 20px; height: 200px",
+              fluidRow(
+                column(4,
+                       sliderInput(
+                         "sliderWeekMap", 
+                         "Select weeks for the plot:",
+                         min = 1, max = 5, value = c(1, 2), step = 1
+                       )
+                ),
+                column(4,
+                       selectInput(
+                         inputId = "PeopleMap",
+                         label = "Select people:",
+                         choices = c("Jozef", "Klaudia", "Michal"),
+                         selected = c("Jozef", "Klaudia", "Michal"),
+                         multiple = TRUE
+                       )
+                ),
+                column(4,
+                       sliderInput(
+                         inputId = "topPlacesCountMap",
+                         label = "Select number of top places to display:",
+                         min = 1, max = 20, value = 5, step = 1
+                       )
+                )
+              )
+            )
           )
-          
-          
         )
+        
       )
     }
   })
@@ -864,11 +905,11 @@ server <- function(input, output, session) {
     )
     
     czas_w_transporcie <- podroze %>%
-      filter(weekNum >= input$sliderWeekMap[1] & weekNum <=  input$sliderWeekMap[2]) %>% 
+      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
       mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
              dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
       group_by(dayOfWeek) %>% 
-      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeekMap[2] - input$sliderWeekMap[1] + 1)) %>% 
+      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
       ungroup() %>% 
       group_by() %>% 
       select(dayOfWeek, meanTimeDur, activity_type) %>% 
@@ -876,14 +917,14 @@ server <- function(input, output, session) {
       slice(1)
     
     czas_miejsca <- wizyty %>% 
-      filter(weekNum >= input$sliderWeekMap[1] & weekNum <=  input$sliderWeekMap[2]) %>% 
+      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
       filter(place != "MiNI") %>% 
       mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>%
       mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
              dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
       select(dayOfWeek, timeDurSec, activity_type) %>% 
       group_by(dayOfWeek, activity_type) %>% 
-      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeekMap[2] - input$sliderWeekMap[1] + 1)) %>% 
+      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
       ungroup() %>% 
       select(dayOfWeek, activity_type, meanTimeDur) %>% 
       group_by(dayOfWeek, activity_type, meanTimeDur) %>% 
@@ -1010,18 +1051,32 @@ server <- function(input, output, session) {
   
   
   output$transportSpeedText1 <- renderText({
-    paste0("jyefrbiuefbebf3 bfhrb4fhjrbfjbekw bfkeigniergblkerw fiuewbfuihe wfiuewbofw iuhe ewbf wefu web fweifb ewybf wefoeu eb fhewb uweuyw e ewuoyf ")
+    paste0("This boxplot shows the distribution of the selected people's speed when ", case_when(
+      input$TransportType == "in car" ~ "traveling by car",
+      input$TransportType == "in tram" ~ "traveling by tram",
+      input$TransportType == "in train" ~ "traveling by train",
+      input$TransportType == "in subway" ~ "traveling by subway",
+      TRUE ~ input$TransportType), " by day of the week.")
   })
   
   output$transportSpeedText2 <- renderText({
-    paste0("As we can see noone likes trains except jozef on some days. As we c
-           an see noone likes trains except jozef on some days. As we can see no
-           one likes trains except jozef on some days. As we can see noone likes 
-           trains except jozef on some days")
+    paste0("This boxplot shows the distribution of the selected people's speed when ", case_when(
+      input$TransportType == "in car" ~ "traveling by car",
+      input$TransportType == "in tram" ~ "traveling by tram",
+      input$TransportType == "in train" ~ "traveling by train",
+      input$TransportType == "in subway" ~ "traveling by subway",
+      TRUE ~ input$TransportType), ", for a more general comparison than the previous plot.")
   })
   
   output$transportSpeedText3 <- renderText({
-    paste0("write me an interesting and smart sounding analysis of the heatmap in the picture showing how much a person walked in a certin day")
+    paste0("This heatmap shows the distance covered by ", input$selectedPerson2, " when ",
+           case_when(
+             input$TransportType == "in car" ~ "traveling by car",
+             input$TransportType == "in tram" ~ "traveling by tram",
+             input$TransportType == "in train" ~ "traveling by train",
+             input$TransportType == "in subway" ~ "traveling by subway",
+             TRUE ~ input$TransportType), ", for every day in the six weeks of our data gathering.
+           When analysing it we must keep in mind that the data only includes time spent with our phones and an internet connection.")
   })
   
   
