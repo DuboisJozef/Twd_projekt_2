@@ -1,12 +1,12 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
+  #
+  # This is a Shiny web application. You can run the application by clicking
+  # the 'Run App' button above.
+  #
+  # Find out more about building applications with Shiny here:
+  #
+  #    http://shiny.rstudio.com/
+  #
+  
 library(shiny)
 library(rjson)
 library(dplyr)
@@ -17,9 +17,9 @@ library(tidyr)
 library(bslib)
 library(shinythemes)
 library(shinymaterial)
-library(ggradar)
 library(scales)
 library(fmsb)
+library(showtext)
 
 
 
@@ -27,6 +27,10 @@ lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
 lok_mic <- fromJSON(file = "../data/Os_czasu_mi.json")
 lok_kla <- fromJSON(file = "../data/Os_czasu_kl.json")
 
+
+font_add_google("Roboto", "roboto")
+showtext_auto()
+par(family = "roboto")  # dla wykresów bazowych
 # read merged df
 merged_df <- read.csv("../data/merged_data.csv")
 lok_names <- read.csv("../data/lok_names.csv")
@@ -182,13 +186,13 @@ server <- function(input, output, session) {
   
   values <- reactiveValues(showStartPage = TRUE)
   
-output$startPage <- renderUI({
-  if (values$showStartPage) {
-    
-    tagList(
-      leafletOutput("mapBackground", height = "100vh"),
+  output$startPage <- renderUI({
+    if (values$showStartPage) {
       
-      tags$style(HTML("
+      tagList(
+        leafletOutput("mapBackground", height = "100vh"),
+        
+        tags$style(HTML("
       
         body {
           background-image: url('http://mapa-google.pl/warszawa/'); 
@@ -207,10 +211,10 @@ output$startPage <- renderUI({
         }
         
         ")),
-      
-      tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
-      
-      div(style = "text-align: center;
+        
+        tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
+        
+        div(style = "text-align: center;
         font-size: 100px;
         height: 200px;
         width: 400px;
@@ -218,104 +222,10 @@ output$startPage <- renderUI({
         top: 40%;
         left: 50%;
         transform: translate(-50%, -50%);",
-          
+        
         h1(style = "text-align: center; font-size: 100px; font-weight: 1000",
-          HTML(
-            paste0(
-              # Google colors to each letter
-              paste0(
-                '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
-                '<span style="color: #0f9d58;">', substr("Map My Moments", 2, 2), '</span>',
-                '<span style="color: #FBBC05;">', substr("Map My Moments", 3, 3), '</span>',
-                
-                '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
-                
-                '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
-                '<span style="color: #0f9d58;">', substr("Map My Moments", 6, 6), '</span>',
-                
-                '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
-                
-                '<span style="color: #E94335;">', substr("Map My Moments", 8, 8), '</span>',
-                '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
-                '<span style="color: #0f9d58;">', substr("Map My Moments", 10, 10), '</span>',
-                '<span style="color: #FBBC05;">', substr("Map My Moments", 11, 11), '</span>',
-                '<span style="color: #E94335;">', substr("Map My Moments", 12, 12), '</span>',
-                '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
-                '<span style="color: #0f9d58;">', substr("Map My Moments", 14, 14), '</span>'
-              )
-            )
-          )
-          ),
-        
-        # p("Welcome to the app", style = "font-size: 20px; color: #5F6368; font-weight: 00;"),
-        
-        actionButton("startBtn", label = NULL, 
-                     icon = icon("arrow-right"), 
-                     class = "btn-enter",
-                     style = "background-color: #4285F4; 
-                     color: white; 
-                     font-size: 18px; 
-                     padding: 15px 30px; 
-                     border-radius: 5px; 
-                     border: none; 
-                     cursor: pointer; 
-                     font-weight: 500; 
-                     box-shadow: 0 2px 6px rgba(0,0,0,0.2);")
-        )
-    )
-  }
-})
-
-
-output$mainApp <- renderUI({
-  if (!values$showStartPage) {
-    tagList(
-      
-      tags$head(
-        tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/icon?family=Material+Icons")
-      ),
-      
-      tags$style(HTML("
-
-        #person_icon {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        padding: 10px;
-        }
-        
-        .nav-tabs {
-          display: block;
-          width: 90px;
-          float: left;
-          background-color: f1f1f1;
-          position: fixed;
-          top: 50%;
-          transform: translateY(-50%);
-        }
-        
-        .tab-content {
-          margin-left: 100px;
-        }
-        
-        .tab-content-wrapper {
-          background-color: #333; 
-        }
-
-        }
-
-        ")),
-      
-      tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
-      
-      titlePanel(
-        
-        h1(style = "font-size: 60px; font-weight: 1000; padding: 10px",
-           
            HTML(
-             
              paste0(
-               
                # Google colors to each letter
                paste0(
                  '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
@@ -337,385 +247,540 @@ output$mainApp <- renderUI({
                  '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
                  '<span style="color: #0f9d58;">', substr("Map My Moments", 14, 14), '</span>'
                )
-               
              )
-             
            )
+        ),
+        
+        # p("Welcome to the app", style = "font-size: 20px; color: #5F6368; font-weight: 00;"),
+        
+        actionButton("startBtn", label = NULL, 
+                     icon = icon("arrow-right"), 
+                     class = "btn-enter",
+                     style = "background-color: #4285F4; 
+                     color: white; 
+                     font-size: 18px; 
+                     padding: 15px 30px; 
+                     border-radius: 5px; 
+                     border: none; 
+                     cursor: pointer; 
+                     font-weight: 500; 
+                     box-shadow: 0 2px 6px rgba(0,0,0,0.2);")
         )
+      )
+    }
+  })
+  
+  
+  output$mainApp <- renderUI({
+    if (!values$showStartPage) {
+      tagList(
         
-      ),
-      
-      tabsetPanel(
-        type = "tabs",
-        
-        tabPanel(
-          # title = tagList(
-          #   tags$img(src = "https://cdn-icons-png.flaticon.com/128/2773/2773319.png", height = "30px", width = "30px"),
-          #   " Weekly Activities"
-          # ),
-          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/2773/2773319.png", height = "40px", width = "40px"),
+        tags$head(
+          # Ikony Material (jeśli używasz)
+          tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/icon?family=Material+Icons"),
           
-          sidebarLayout(
-            sidebarPanel(
-              sliderInput("sliderWeek1", "Select weeks for the plot:",
-                          min = 1, max = 6, value = c(1, 2), step = 1),
-              
-              selectInput("dropdown1", "Choose the person:",
-                          choices = c("Jozef", "Michal", "Klaudia"))
-            ),
-            mainPanel(
-              textOutput("weeklyActivitiesText1"),
-              plotOutput("dailyActivitiesPlot"),
-              
+          # Styl, w tym margines na dole + dotychczasowe
+          tags$style(HTML("
+          /* Dzięki temu nie zasłonimy zawartości panelem przyklejonym na dole */
+          body {
+            margin-bottom: 120px; /* dostosuj w razie potrzeby */
+          }
+
+          #person_icon {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            padding: 10px;
+          }
+          
+          .nav-tabs {
+            display: block;
+            width: 90px;
+            float: left;
+            background-color: f1f1f1;
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+          
+          .tab-content {
+            margin-left: 100px;
+          }
+          
+          .tab-content-wrapper {
+            background-color: #333;
+          }
+        "))
+        ),
+        
+        # Ikonka osoby w prawym górnym rogu
+        tags$img(
+          id = "person_icon", 
+          src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", 
+          height = "70px", 
+          width = "70px"
+        ),
+        
+        # Tytuł w stylu "Google"
+        titlePanel(
+          h1(
+            style = "font-size: 60px; font-weight: 1000; padding: 10px",
+            HTML(
+              paste0(
+                # Kolorowanie liter "Map My Moments"
+                paste0(
+                  '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
+                  '<span style="color: #0f9d58;">', substr("Map My Moments", 2, 2), '</span>',
+                  '<span style="color: #FBBC05;">', substr("Map My Moments", 3, 3), '</span>',
+                  
+                  '<span style="color: #EA4335;">', substr("Map My Moments", 4, 4), '</span>',
+                  
+                  '<span style="color: #4285F4;">', substr("Map My Moments", 5, 5), '</span>',
+                  '<span style="color: #0f9d58;">', substr("Map My Moments", 6, 6), '</span>',
+                  
+                  '<span style="color: #FBBC02;">', substr("Map My Moments", 7, 7), '</span>',
+                  
+                  '<span style="color: #E94335;">', substr("Map My Moments", 8, 8), '</span>',
+                  '<span style="color: #4285F4;">', substr("Map My Moments", 9, 9), '</span>',
+                  '<span style="color: #0f9d58;">', substr("Map My Moments", 10, 10), '</span>',
+                  '<span style="color: #FBBC05;">', substr("Map My Moments", 11, 11), '</span>',
+                  '<span style="color: #E94335;">', substr("Map My Moments", 12, 12), '</span>',
+                  '<span style="color: #4285F4;">', substr("Map My Moments", 13, 13), '</span>',
+                  '<span style="color: #0f9d58;">', substr("Map My Moments", 14, 14), '</span>'
+                )
+              )
             )
           )
-         
-        ),
-        tabPanel(
-          
-          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png", height = "40px", width = "40px"),
-          
-           sidebarLayout(
-             sidebarPanel(
-               selectInput(
-                 inputId = "selectedPerson",
-                 label = "Select Person:",
-                 choices = c("Jozef", "Michal", "Klaudia"),
-                 selected = "Jozef"
-               ),
-               selectInput(
-                 inputId = "selectedWeek",
-                 label = "Select Week (or Overall):",
-                 choices = c("Overall", 1:5),
-                 selected = "Overall"
-               )
-             ),
-             mainPanel(
-               plotOutput("dotPlot"),
-               plotOutput("transportTimePlot")
-               plotOutput("")
-             )
-           )
-          
         ),
         
-        tabPanel(
+        tabsetPanel(
+          type = "tabs",
           
-          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/7552/7552703.png", height = "40px", width = "40px"),
-        
-          sidebarLayout(
-            sidebarPanel(
-              selectInput(
-                inputId = "People",
-                label = "Select people:",
-                choices = c("Jozef", "Klaudia", "Michal"),
-                selected = c("Klaudia", "Michal"),  
-                multiple = TRUE  
+          ##################################################
+          # 1) Pierwszy tab (actvity)
+          ##################################################
+          tabPanel(
+            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/2773/2773319.png",
+                             height = "40px", width = "40px"),
+            
+            sidebarLayout(
+              sidebarPanel(
+                sliderInput("sliderWeek1", "Select weeks for the plot:",
+                            min = 1, max = 6, value = c(1, 2), step = 1),
+                
+                selectInput("dropdown1", "Choose the person:",
+                            choices = c("Jozef", "Michal", "Klaudia"))
               ),
-              selectInput(
-                inputId = "TransportType",
-                label = "Select transport type:",
-                choices = c("cycling", "in car", "in subway", "in tram", "walking", "in train"),
-                selected = "walking"
+              mainPanel(
+                textOutput("weeklyActivitiesText1"),
+                plotOutput("dailyActivitiesPlot")
               )
-              ,
-              selectInput(
-                inputId = "selectedPerson2",
-                label = "Select Person:",
-                choices = c("Jozef", "Michal", "Klaudia"),
-                selected = "Jozef"
-              )
-            ),
-            mainPanel(
-              textOutput("transportSpeedText1"),     
-              plotOutput("transportSpeedBoxPlot"),   
-              textOutput("transportSpeedText2"),  
-              plotOutput("transportSpeedBoxPlot2"),
-              textOutput("transportSpeedText3"),  
-              plotOutput("transportSpeedHeatmap"),
-            )
-          )
-        ),
-        
-        
-        # tabPanel("Top 5 Most Visited Places",
-        #          sidebarLayout(
-        #            sidebarPanel(
-        #              sliderInput("sliderWeekMap", "Select weeks for the plot:",
-        #                          min = 1, max = 5, value = c(1, 2), step = 1),
-        #              selectInput(
-        #                inputId = "PeopleMap",
-        #                label = "Select people:",
-        #                choices = c("Jozef", "Klaudia", "Michal"),
-        #                selected = c("Jozef", "Klaudia", "Michal"),
-        #                multiple = TRUE
-        #              ),
-        #              sliderInput(
-        #                inputId = "topPlacesCountMap",
-        #                label = "Select number of top places to display:",
-        #                min = 1, max = 20, value = 5, step = 1
-        #              )
-        #            ),
-        #            mainPanel(
-        #              h4("Top 5 Most Visited Places"),
-        #              leafletOutput("map", width = "100%", height = "800px")
-        #            )
-        #          )
-        # )
-        
-        
-        tabPanel(
-          
-          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/854/854878.png", height = "40px", width = "40px"),
-          
-          
-          fluidRow(
-            column(
-              12,
-              leafletOutput("map", width = "100%", height = "500px")
             )
           ),
           
-          fluidRow(
-            column(4,
-                   sliderInput(
-                     "sliderWeekMap", 
-                     "Select weeks for the plot:",
-                     min = 1, max = 5, value = c(1, 2), step = 1
-                   )
+          ##################################################
+          # 2) Drugi Tab (transport)
+          ##################################################
+          tabPanel(
+            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png",
+                             height = "40px", width = "40px"),
+            
+            # Główny układ: 2 kolumny obok siebie
+            fluidRow(
+              # LEWA kolumna Spider Plot
+              column(
+                width = 6,
+                plotOutput("spiderPlot")
+              ),
+              
+              # PRAWA kolumna: DotPlot + TransportTimePlot
+              column(
+                width = 6,
+                plotOutput("dotPlot"),
+                plotOutput("transportTimePlot")
+              )
             ),
-            column(4,
-                   selectInput(
-                     inputId = "PeopleMap",
-                     label = "Select people:",
-                     choices = c("Jozef", "Klaudia", "Michal"),
-                     selected = c("Jozef", "Klaudia", "Michal"),
-                     multiple = TRUE
-                   )
+            
+            # PANEL PRZYKLEJONY NA DOLE - z inputami
+            fixedPanel(
+              bottom = 0, left = 0, right = 0,
+              style = "
+              padding: 10px; 
+              background-color: #f8f8f8; 
+              border-top: 1px solid #ccc; 
+              z-index: 1000;
+            ",
+            fluidRow(
+              column(
+                width = 6,
+                sliderInput(
+                  "sliderWeekTransport",
+                  "Select weeks for the plot:",
+                  min = 1, max = 5, value = c(1, 2), step = 1
+                )
+              ),
+              column(
+                width = 6,
+                selectInput(
+                  inputId = "People",
+                  label = "Select people:",
+                  choices = c("Jozef", "Klaudia", "Michal"),
+                  selected = c("Michal", "Klaudia"),
+                  multiple = TRUE
+                )
+              )
+            )
+            )
+          ),
+          
+          ##################################################
+          # 3) Trzeci tab (speed)
+          ##################################################
+          tabPanel(
+            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/7552/7552703.png",
+                             height = "40px", width = "40px"),
+            
+            sidebarLayout(
+              sidebarPanel(
+                selectInput(
+                  inputId = "People",
+                  label = "Select people:",
+                  choices = c("Jozef", "Klaudia", "Michal"),
+                  selected = c("Klaudia", "Michal"),
+                  multiple = TRUE
+                ),
+                selectInput(
+                  inputId = "TransportType",
+                  label = "Select transport type:",
+                  choices = c("cycling", "in car", "in subway",
+                              "in tram", "walking", "in train"),
+                  selected = "walking"
+                ),
+                selectInput(
+                  inputId = "selectedPerson2",
+                  label = "Select Person:",
+                  choices = c("Jozef", "Michal", "Klaudia"),
+                  selected = "Jozef"
+                )
+              ),
+              mainPanel(
+                textOutput("transportSpeedText1"), 
+                plotOutput("transportSpeedBoxPlot"), 
+                textOutput("transportSpeedText2"),
+                plotOutput("transportSpeedBoxPlot2"),
+                textOutput("transportSpeedText3"),
+                plotOutput("transportSpeedHeatmap")
+              )
+            )
+          ),
+          
+          ##################################################
+          # 4) Czwarty tab (Map)
+          ##################################################
+          tabPanel(
+            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/854/854878.png",
+                             height = "40px", width = "40px"),
+            
+            fluidRow(
+              column(
+                12,
+                leafletOutput("map", width = "100%", height = "500px")
+              )
             ),
-            column(4,
-                   sliderInput(
-                     inputId = "topPlacesCountMap",
-                     label = "Select number of top places to display:",
-                     min = 1, max = 20, value = 5, step = 1
-                   )
+            
+            fluidRow(
+              column(
+                4,
+                sliderInput(
+                  "sliderWeekMap",
+                  "Select weeks for the plot:",
+                  min = 1, max = 5, value = c(1, 2), step = 1
+                )
+              ),
+              column(
+                4,
+                selectInput(
+                  inputId = "PeopleMap",
+                  label = "Select people:",
+                  choices = c("Jozef", "Klaudia", "Michal"),
+                  selected = c("Jozef", "Klaudia", "Michal"),
+                  multiple = TRUE
+                )
+              ),
+              column(
+                4,
+                sliderInput(
+                  inputId = "topPlacesCountMap",
+                  label = "Select number of top places to display:",
+                  min = 1, max = 20, value = 5, step = 1
+                )
+              )
             )
           )
-        )
-        
-        
-      )
-    )
-  }
-})
-
-
-
-
-observeEvent(input$startBtn, {
+          
+        ) # end of tabsetPanel
+      ) # end of tagList
+    } # end of if (!values$showStartPage)
+  })
+  
+  
+  
+  
+  observeEvent(input$startBtn, {
     values$showStartPage <- FALSE
     shinyjs::show("loading")
     
     Sys.sleep(2)
     
     shinyjs::hide("loading")
-  
+    
   })
   
   
-
+  
   
   ######################### Rodzaj Transportu ##################################
   
-output$dotPlot <- renderPlot({
-  # 1) Identify the full dataset for the selected person (unfiltered)
-  full_data <- switch(
-    input$selectedPerson,
-    "Jozef"   = podroze_joz,
-    "Michal"  = podroze_mic,
-    "Klaudia" = podroze_kla
+  person_colors <- c(
+    "Klaudia" = "#1ea362",
+    "Michal"  = "#4a89f3",
+    "Jozef"   = "#dd4b3e"
   )
   
-  # 2) Get all possible transport modes for this person
-  all_activities <- unique(full_data$activity)
-  
-  # 3) Now filter by week *if not Overall* to get the data we'll actually plot
-  if (input$selectedWeek != "Overall") {
-    person_data <- full_data %>%
-      dplyr::filter(weekNum == as.numeric(input$selectedWeek))
-  } else {
-    person_data <- full_data
-  }
-  
-  # 4) Group the filtered data by activity and create a stack index
-  #    If a particular activity has no rows in this filtered subset,
-  #    there will be no rows to stack for that activity.
-  person_data_stacked <- person_data %>%
-    dplyr::group_by(activity) %>%
-    dplyr::mutate(countIndex = dplyr::row_number()) %>%
-    dplyr::ungroup()
-  
-  # 5) Find the maximum stacked count for any category (for y-axis upper limit)
-  max_count <- person_data_stacked %>%
-    dplyr::count(activity) %>%
-    dplyr::pull(n) %>%
-    max(., na.rm = TRUE)
-  
-  # If there is no data (e.g., user picks a week with zero trips),
-  # we can default max_count to 0 to avoid errors.
-  if (is.infinite(max_count) || max_count < 1) {
-    max_count <- 0
-  }
-  
-  # 6) Plot using x=activity, y=countIndex (stack position)
-  ggplot(person_data_stacked, aes(x = activity, y = countIndex)) +
-    geom_point(
-      size  = 3,
-      alpha = 0.8,
-      color = "#4285F4"   # Google-blue color
-    ) +
-    # Force x-axis to show *all* activities (even those missing in this subset)
-    scale_x_discrete(limits = all_activities) +
-    # Y-axis setup
-    scale_y_continuous(
-      # Example: show breaks every 5 up to max_count, plus 1 if small
-      breaks = if (max_count <= 5) {
-        0:max_count
-      } else {
-        seq(0, max_count, by = 5)
-      },
-      limits = c(0, max_count + 0.5)  # a little padding above
-    ) +
-    labs(
-      title = "Stacked Dot Plot of Transportation",
-      x     = "Transport Type",
-      y     = "Count"
-    ) +
-    theme_minimal() +
-    theme(
-      panel.grid.major.y = element_line(color = "gray80", size = 0.5),
-      panel.grid.minor.y = element_blank(),
-      axis.text.y  = element_text(size = 10),
-      axis.text.x  = element_text(size = 10, angle = 45, hjust = 1)
-    )
-})
-  
-  output$transportTimePlot <- renderPlot({
-    
-    # Filter data for the selected person and week (if specified)
-    personData <- switch(input$selectedPerson,
-                         "Jozef" = podroze_joz,
-                         "Michal" = podroze_mic,
-                         "Klaudia" = podroze_kla)
-    
-    if (input$selectedWeek != "Overall") {
-      personData <- personData %>% filter(weekNum == as.numeric(input$selectedWeek))
-    }
-    
-    # Summarize the total time spent on each transportation type
-    transportTime <- personData %>%
-      group_by(activity) %>%
-      summarise(totalTime = sum(timeDurSec, na.rm = TRUE)) %>%
-      arrange(desc(totalTime))
-    
-    # Plot transportation time
-    ggplot(transportTime, aes(x = reorder(activity, -totalTime), y = totalTime / 3600, fill = activity)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(title = paste("Time Spent on Transport (Hours) -",
-                         ifelse(input$selectedWeek == "Overall", "Overall", paste("Week", input$selectedWeek)),
-                         "-", input$selectedPerson),
-           x = "Transportation Type", y = "Time (Hours)", fill = "Transport") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  })
-  
-  
-  
-  output$spiderPlot <- renderPlot({
-    # 1) Pobierz pełny dataset dla wybranej osoby
-    full_data <- switch(
-      input$selectedPerson,
-      "Jozef"   = podroze_joz,
-      "Michal"  = podroze_mic,
-      "Klaudia" = podroze_kla
+  #########################
+  #  Dot Plot 
+  #########################
+  output$dotPlot <- renderPlot({
+    # Laczenie danych
+    all_data <- dplyr::bind_rows(
+      podroze_joz  %>% mutate(distance = as.numeric(distance)),
+      podroze_mic  %>% mutate(distance = as.numeric(distance)),
+      podroze_kla  %>% mutate(distance = as.numeric(distance))
     )
     
-    # 2) Filtrowanie tygodnia (jeśli wybrano konkretny, a nie "Overall")
-    if (input$selectedWeek != "Overall") {
-      full_data <- full_data %>% 
-        dplyr::filter(weekNum == as.numeric(input$selectedWeek))
-    }
+    # Filtrowanie
+    filtered_data <- all_data %>%
+      dplyr::filter(person %in% input$People) %>%
+      dplyr::filter(weekNum >= input$sliderWeekTransport[1],
+                    weekNum <= input$sliderWeekTransport[2])
     
-    # 3) Zlicz ile razy użyto danego środka transportu
-    transport_counts <- full_data %>%
-      dplyr::count(activity) %>%
-      dplyr::arrange(activity)
-    
-    # Sprawdź, czy cokolwiek mamy
-    if (nrow(transport_counts) == 0) {
+    # Jak brak danych 
+    if (nrow(filtered_data) == 0) {
       plot.new()
-      text(0.5, 0.5, "Brak danych dla wybranego zestawu.", cex = 1.2)
+      text(0.5, 0.5, "No data for the chosen people/weeks.")
       return()
     }
     
-    # 4) Szeroki format: jedna kolumna = jeden rodzaj transportu
-    #    Jedna seria (wiersz) = dane naszej osoby.
-    #    Używamy pivot_wider() aby kolumnami były rodzaje transportu.
-    wide_df <- transport_counts %>%
-      tidyr::pivot_wider(
-        names_from = activity,  # nazwy kolumn będą nazwami aktywności
-        values_from = n,        # wartości w komórkach = liczba wystąpień
-        values_fill = 0         # jeśli brak, to wstaw 0
+    person_data_stacked <- filtered_data %>%
+      group_by(activity, person) %>%
+      mutate(countIndex = row_number()) %>%
+      ungroup()
+    
+    all_activities <- sort(unique(
+      c(podroze_joz$activity, podroze_mic$activity, podroze_kla$activity)
+    ))
+    
+    # Wykres
+    ggplot(person_data_stacked, aes(x = activity, y = countIndex, color = person)) +
+      geom_point(position = position_dodge(width = 0.6), size = 3, alpha = 0.8) +
+      scale_x_discrete(limits = all_activities) +
+      scale_color_manual(values = person_colors) +
+      theme_minimal(base_family = "roboto", base_size = 14) +   # <-- USTAWIENIE CZCIONKI I ROZMIARU
+      labs(
+        title = "Dot Plot of Trips (One dot per instance)",
+        x     = "Transport Type",
+        y     = "Count Index"
+      ) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.title = element_blank()
       )
-    
-    # 5) Wyznacz wartości minimalne i maksymalne.
-    #    Dla fmsb musimy dodać 2 wiersze: min i max.
-    max_val <- max(wide_df, na.rm = TRUE)
-    
-    # Jeśli mamy tylko 1 kolumnę, fmsb też zadziała, ale będzie to pojedynczy „promień”.
-    # wide_df to 1 wiersz (nasze dane). Dodajemy 2 wiersze na górze:
-    df_for_radar <- rbind(
-      rep(max_val, ncol(wide_df)),  # wiersz max
-      rep(0,       ncol(wide_df)),  # wiersz min
-      wide_df                        # właściwe dane
+  })
+  
+  #########################
+  #  Transport Time Plot
+  #########################
+  output$transportTimePlot <- renderPlot({
+    # laczymy dane
+    all_data <- dplyr::bind_rows(
+      podroze_joz  %>% mutate(distance = as.numeric(distance)),
+      podroze_mic  %>% mutate(distance = as.numeric(distance)),
+      podroze_kla  %>% mutate(distance = as.numeric(distance))
     )
     
-    # fmsb wymaga, by nazwy kolumn były w df; ewentualnie (opcjonalnie) dodajemy row.names
-    rownames(df_for_radar) <- c("MAX", "MIN", "DATA")
+    # Filtrujemy
+    filtered_data <- all_data %>%
+      dplyr::filter(person %in% input$People) %>%
+      dplyr::filter(weekNum >= input$sliderWeekTransport[1],
+                    weekNum <= input$sliderWeekTransport[2])
     
-    
-    #helper function
-    create_beautiful_radarchart <- function(data, color = "#4285F4", 
-                                            vlabels = colnames(data), vlcex = 0.7,
-                                            caxislabels = NULL, title = NULL, ...){
-      radarchart(
-        data, axistype = 1,
-        # Customize the polygon
-        pcol = color, pfcol = scales::alpha(color, 0.5), plwd = 2, plty = 1,
-        # Customize the grid
-        cglcol = "grey", cglty = 1, cglwd = 0.8,
-        # Customize the axis
-        axislabcol = "grey", 
-        # Variable labels
-        vlcex = vlcex, vlabels = vlabels,
-        caxislabels = caxislabels, title = title, ...
-      )
+    # Gdy brak danych
+    if (nrow(filtered_data) == 0) {
+      plot.new()
+      text(0.5, 0.5, "No data for chosen people/weeks.")
+      return()
     }
     
+    #Lista wszystkich możliwych aktywności
+    all_activities <- sort(unique(
+      c(podroze_joz$activity, podroze_mic$activity, podroze_kla$activity)
+    ))
     
-    # 6) Rysujemy radar chart
-    create_beautiful_radarchart(df_for_radar, title = "Transport Modes - Radar Chart")
+    # Podsumowujemy czas per (activity, person)
+    transportTime <- filtered_data %>%
+      dplyr::group_by(activity, person) %>%
+      dplyr::summarise(totalTime = sum(timeDurSec, na.rm = TRUE), .groups = "drop")
+    
+    # Uzupełniamy brakujące kombinacje (aktywnosc, osoba) zerem
+    transportTime <- transportTime %>%
+      tidyr::complete(
+        activity = all_activities,
+        person   = input$People,
+        fill = list(totalTime = 0) 
+      )
+    
+    # Wykres
+    ggplot(transportTime, aes(x = activity, y = totalTime / 3600, fill = person)) +
+      geom_bar(
+        stat     = "identity",
+        position = position_dodge(width = 0.8),
+        width    = 0.7                        
+      ) +
+      scale_x_discrete(limits = all_activities) +
+      scale_fill_manual(values = person_colors) +
+      theme_minimal(base_family = "roboto", base_size = 14) + 
+      labs(
+        title = paste0("Time Spent on Transport (Hours) - Weeks ",
+                       paste(input$sliderWeekTransport, collapse = "-")),
+        x = "Transportation Type",
+        y = "Time (Hours)"
+      ) +
+      theme(
+        axis.text.x      = element_text(angle = 45, hjust = 1),
+        legend.title     = element_blank(),
+        panel.grid.minor = element_blank()
+      )
   })
+  
+  #####################
+  #### Spider Plot ####
+  #####################
+  
+  output$spiderPlot <- renderPlot(
+    height = function() {
+      275 * max(length(input$People), 1)
+    },
+    {
 
+      # laczenie danych
+      all_data <- bind_rows(
+        podroze_joz %>% mutate(distance = as.numeric(distance)),
+        podroze_mic %>% mutate(distance = as.numeric(distance)),
+        podroze_kla %>% mutate(distance = as.numeric(distance))
+      )
+      
+      # filtrowanie 
+      filtered_data <- all_data %>%
+        filter(person %in% input$People) %>%
+        filter(
+          weekNum >= input$sliderWeekTransport[1],
+          weekNum <= input$sliderWeekTransport[2]
+        )
+      
+      # gdy brak danych
+      if (nrow(filtered_data) == 0) {
+        plot.new()
+        text(0.5, 0.5, "No data for the chosen people/weeks.")
+        return()
+      }
+      
+      all_activities <- sort(unique(
+        c(podroze_joz$activity, podroze_mic$activity, podroze_kla$activity)
+      ))
+      
+      # helper function do wykresu
+      create_beautiful_radarchart <- function(data, color = "#4285F4", 
+                                              vlabels = colnames(data), vlcex = 0.7,
+                                              caxislabels = rep("", 5), title = NULL, ...) {
+        radarchart(
+          data,
+          axistype = 1,
+          pcol      = color,
+          pfcol     = scales::alpha(color, 0.5),
+          plwd      = 2, 
+          plty      = 1,
+          cglcol    = "grey", 
+          cglty     = 1, 
+          cglwd     = 0.8,
+          axislabcol = "grey",
+          vlcex     = vlcex, 
+          vlabels   = vlabels,
+          caxislabels = caxislabels,
+          title     = title,
+          ...
+        )
+      }
+      
+      # lista wybranych osob
+      persons_selected <- unique(filtered_data$person)
+      
+      # ustawienia ukladu
+      par(
+        mfrow  = c(length(persons_selected), 1),
+        mar    = c(3,3,3,3),
+        family = "roboto",  # <-- rodzina czcionki
+        cex    = 1.2        # <-- globalne powiększenie tekstu
+      )
+      
+      # petla po osobach
+      for (p in persons_selected) {
+        data_for_person <- filtered_data %>%
+          filter(person == p)
+        
+        transport_counts <- data_for_person %>%
+          count(activity) %>%
+          complete(activity = all_activities, fill = list(n = 0)) %>%
+          arrange(activity)
+        
+        wide_df <- transport_counts %>%
+          pivot_wider(
+            names_from  = activity,
+            values_from = n,
+            values_fill = 0
+          )
+        
+        max_val <- max(wide_df, na.rm = TRUE)
+        df_for_radar <- rbind(
+          rep(max_val, ncol(wide_df)),  # MAX
+          rep(0,       ncol(wide_df)),  # MIN
+          wide_df
+        )
+        
+        df_for_radar <- as.data.frame(df_for_radar)
+        rownames(df_for_radar) <- c("MAX", "MIN", "DATA")
+        
+        color_for_person <- person_colors[p] %||% "#999999"
+        
+        create_beautiful_radarchart(
+          data  = df_for_radar,
+          color = color_for_person,
+          family = "roboto",
+          cex    = 1.2,
+          title = paste0("Transport - ", p, 
+                         "\n(Weeks ", paste(input$sliderWeekTransport, collapse = "-"), ")")
+        )
+      }
+    }
+  )
   
   ############################## Aktywności ####################################
   
-    output$weeklyActivitiesText1 <- renderText({
-      paste0("As we can see noone likes trains except jozef on some days. As we c
+  output$weeklyActivitiesText1 <- renderText({
+    paste0("As we can see noone likes trains except jozef on some days. As we c
            an see noone likes trains except jozef on some days. As we can see no
            one likes trains except jozef on some days. As we can see noone likes 
            trains except jozef on some days")
-    })
+  })
   
   output$dailyActivitiesPlot <- renderPlot({
     if(input$dropdown1 == "Jozef"){
@@ -787,7 +852,7 @@ output$dotPlot <- renderPlot({
   
   
   ############################## Predkość ######################################
-    
+  
   output$transportSpeedBoxPlot <- renderPlot({
     # Combine datasets and filter based on inputs
     podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic) %>%
@@ -961,75 +1026,75 @@ output$dotPlot <- renderPlot({
   })
   
   
-    ################################# Mapa #####################################
-    # filter data
-    filtered_data <- reactive({
-      person_map <- c("Jozef" = "jo", "Michal" = "mi", "Klaudia" = "kl")
-      selected_people <- input$PeopleMap
-      ppl_map <- person_map[selected_people]
-      
-      merged_df %>%
-        filter(relativeWeekNum >= input$sliderWeekMap[1] & relativeWeekNum <= input$sliderWeekMap[2]) %>%
-        filter(person %in% ppl_map) %>% 
-        filter(!is.na(placeName))
-    })
-  
-    # map title
-    output$dynamicTitleMap <- renderUI({
-      h4(paste("Top", input$topPlacesCountMap, "Most Visited Places"))
-    })
-  
-    # map
-    output$map <- renderLeaflet({
-      data_filtered <- filtered_data()
-      
-      top_n <- input$topPlacesCountMap
-      
-      # get top n places
-      top_places <- data_filtered %>%
-        count(placeName, latitude, longitude, person) %>%
-        arrange(desc(n)) %>%
-        head(top_n)
-      
-      # calculate values for setView
-      lat_range <- max(top_places$latitude, na.rm = TRUE) - min(top_places$latitude, na.rm = TRUE)
-      lng_range <- max(top_places$longitude, na.rm = TRUE) - min(top_places$longitude, na.rm = TRUE)
-      
-      if (nrow(top_places) > 0) {
-        center_lat <- mean(top_places$latitude, na.rm = TRUE)
-        center_lng <- mean(top_places$longitude, na.rm = TRUE)
-        zoom <- ifelse(lat_range > 1 || lng_range > 1, 7, 11)
-      } else {
-        # warsaw default
-        center_lat <- 52.2298
-        center_lng <- 21.0118
-        zoom <- 10
-      }
-      
-      # colors
-      color_palette <- colorFactor(c("red", "green", "blue"), levels = c("jo", "kl", "mi"))
-      
-      # plot
-      leaflet(data = top_places) %>%
-        addProviderTiles(providers$CartoDB.Positron) %>%
-        setView(lng = center_lng, lat = center_lat, zoom = zoom) %>% 
-        addCircleMarkers(
-          lat = ~latitude, lng = ~longitude,
-          radius = ~sqrt(n) * 3,
-          color = ~color_palette(person),
-          popup = ~paste(
-            "<strong>Place Name:</strong>", placeName, "<br>",
-            "<strong>Visits:</strong>", n, "<br>"
-          ) 
-        ) 
-    })
+  ################################# Mapa #####################################
+  # filter data
+  filtered_data <- reactive({
+    person_map <- c("Jozef" = "jo", "Michal" = "mi", "Klaudia" = "kl")
+    selected_people <- input$PeopleMap
+    ppl_map <- person_map[selected_people]
     
-    ################################# Mapa tło #####################################
-    output$mapBackground <- renderLeaflet({
-      leaflet() %>%
-        addProviderTiles(providers$CartoDB.Positron)  %>%  # 
-        setView(lng = 21.0122, lat = 52.2298, zoom = 12) 
-    })
+    merged_df %>%
+      filter(relativeWeekNum >= input$sliderWeekMap[1] & relativeWeekNum <= input$sliderWeekMap[2]) %>%
+      filter(person %in% ppl_map) %>% 
+      filter(!is.na(placeName))
+  })
+  
+  # map title
+  output$dynamicTitleMap <- renderUI({
+    h4(paste("Top", input$topPlacesCountMap, "Most Visited Places"))
+  })
+  
+  # map
+  output$map <- renderLeaflet({
+    data_filtered <- filtered_data()
+    
+    top_n <- input$topPlacesCountMap
+    
+    # get top n places
+    top_places <- data_filtered %>%
+      count(placeName, latitude, longitude, person) %>%
+      arrange(desc(n)) %>%
+      head(top_n)
+    
+    # calculate values for setView
+    lat_range <- max(top_places$latitude, na.rm = TRUE) - min(top_places$latitude, na.rm = TRUE)
+    lng_range <- max(top_places$longitude, na.rm = TRUE) - min(top_places$longitude, na.rm = TRUE)
+    
+    if (nrow(top_places) > 0) {
+      center_lat <- mean(top_places$latitude, na.rm = TRUE)
+      center_lng <- mean(top_places$longitude, na.rm = TRUE)
+      zoom <- ifelse(lat_range > 1 || lng_range > 1, 7, 11)
+    } else {
+      # warsaw default
+      center_lat <- 52.2298
+      center_lng <- 21.0118
+      zoom <- 10
+    }
+    
+    # colors
+    color_palette <- colorFactor(c("red", "green", "blue"), levels = c("jo", "kl", "mi"))
+    
+    # plot
+    leaflet(data = top_places) %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng = center_lng, lat = center_lat, zoom = zoom) %>% 
+      addCircleMarkers(
+        lat = ~latitude, lng = ~longitude,
+        radius = ~sqrt(n) * 3,
+        color = ~color_palette(person),
+        popup = ~paste(
+          "<strong>Place Name:</strong>", placeName, "<br>",
+          "<strong>Visits:</strong>", n, "<br>"
+        ) 
+      ) 
+  })
+  
+  ################################# Mapa tło #####################################
+  output$mapBackground <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron)  %>%  # 
+      setView(lng = 21.0122, lat = 52.2298, zoom = 12) 
+  })
   
 }
 
