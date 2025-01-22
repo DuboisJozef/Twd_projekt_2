@@ -916,20 +916,6 @@
     }
   },
   {
-    "endTime" : "2024-12-14T18:45:00.231+01:00",
-    "startTime" : "2024-12-14T14:15:08.231+01:00",
-    "activity" : {
-      "probability" : "0.000000",
-      "end" : "geo:52.129119,21.065779",
-      "topCandidate" : {
-        "type" : "unknown",
-        "probability" : "0.000000"
-      },
-      "distanceMeters" : "0.000000",
-      "start" : "geo:52.149707,21.045384"
-    }
-  },
-  {
     "endTime" : "2024-12-17T20:05:00.077+01:00",
     "startTime" : "2024-12-14T18:45:00.231+01:00",
     "visit" : {
@@ -957,20 +943,6 @@
       },
       "hierarchyLevel" : "1",
       "isTimelessVisit" : "true"
-    }
-  },
-  {
-    "endTime" : "2024-12-17T20:57:00.077+01:00",
-    "startTime" : "2024-12-17T20:05:00.077+01:00",
-    "activity" : {
-      "probability" : "0.000000",
-      "end" : "geo:52.146123,21.043912",
-      "topCandidate" : {
-        "type" : "unknown",
-        "probability" : "0.000000"
-      },
-      "distanceMeters" : "0.000000",
-      "start" : "geo:52.129119,21.065779"
     }
   },
   {
