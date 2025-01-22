@@ -17,6 +17,10 @@ library(tidyr)
 library(bslib)
 library(shinythemes)
 library(shinymaterial)
+library(scales)
+library(fmsb)
+library(showtext)
+
 
 
 lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
@@ -375,32 +379,62 @@ output$mainApp <- renderUI({
           )
          
         ),
+        ##################################################
+        # 2) Drugi Tab (transport)
+        ##################################################
         tabPanel(
+          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png",
+                           height = "40px", width = "40px"),
           
-          title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png", height = "40px", width = "40px"),
+          # Główny układ: 2 kolumny obok siebie
+          fluidRow(
+            # LEWA kolumna Spider Plot
+            column(
+              width = 6,
+              plotOutput("spiderPlot")
+            ),
+            
+            # PRAWA kolumna: DotPlot + TransportTimePlot
+            column(
+              width = 6,
+              plotOutput("dotPlot"),
+              plotOutput("transportTimePlot")
+            )
+          ),
           
-           sidebarLayout(
-             sidebarPanel(
-               selectInput(
-                 inputId = "selectedPerson",
-                 label = "Select Person:",
-                 choices = c("Jozef", "Michal", "Klaudia"),
-                 selected = "Jozef"
-               ),
-               selectInput(
-                 inputId = "selectedWeek",
-                 label = "Select Week (or Overall):",
-                 choices = c("Overall", 1:5),
-                 selected = "Overall"
-               )
-             ),
-             mainPanel(
-               plotOutput("transportCountPlot"),
-               plotOutput("transportTimePlot")
-             )
-           )
-          
+          # PANEL PRZYKLEJONY NA DOLE - z inputami
+          fixedPanel(
+            bottom = 0, left = 0, right = 0,
+            style = "
+              padding: 10px; 
+              background-color: #f8f8f8; 
+              border-top: 1px solid #ccc; 
+              z-index: 1000;
+            ",
+            fluidRow(
+              column(
+                width = 6,
+                sliderInput(
+                  "sliderWeekTransport",
+                  "Select weeks for the plot:",
+                  min = 1, max = 5, value = c(1, 2), step = 1
+                )
+              ),
+              column(
+                width = 6,
+                selectInput(
+                  inputId = "People",
+                  label = "Select people:",
+                  choices = c("Jozef", "Klaudia", "Michal"),
+                  selected = c("Michal", "Klaudia"),
+                  multiple = TRUE
+                )
+              )
+            )
+          )
         ),
+        
+        
         
         tabPanel(
           
@@ -556,152 +590,240 @@ observeEvent(input$startBtn, {
   
 
   
-  ######################### Rodzaj Transportu ##################################
-  
-  output$transportCountPlot <- renderPlot({
-    
-    # Filter data for the selected person and week (if specified)
-    personData <- switch(input$selectedPerson,
-                         "Jozef" = podroze_joz,
-                         "Michal" = podroze_mic,
-                         "Klaudia" = podroze_kla)
-    
-    if (input$selectedWeek != "Overall") {
-      personData <- personData %>% filter(weekNum == as.numeric(input$selectedWeek))
-    }
-    
-    # Summarize the count of each transportation type
-    transportCounts <- personData %>%
-      group_by(activity) %>%
-      summarise(count = n()) %>%
-      arrange(desc(count))
-    
-    # Plot transportation counts
-    ggplot(transportCounts, aes(x = reorder(activity, -count), y = count, fill = activity)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(title = paste("Most Frequently Used Transport (Count) -",
-                         ifelse(input$selectedWeek == "Overall", "Overall", paste("Week", input$selectedWeek)),
-                         "-", input$selectedPerson),
-           x = "Transportation Type", y = "Count", fill = "Transport") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  })
-  
-  output$transportTimePlot <- renderPlot({
-    
-    # Filter data for the selected person and week (if specified)
-    personData <- switch(input$selectedPerson,
-                         "Jozef" = podroze_joz,
-                         "Michal" = podroze_mic,
-                         "Klaudia" = podroze_kla)
-    
-    if (input$selectedWeek != "Overall") {
-      personData <- personData %>% filter(weekNum == as.numeric(input$selectedWeek))
-    }
-    
-    # Summarize the total time spent on each transportation type
-    transportTime <- personData %>%
-      group_by(activity) %>%
-      summarise(totalTime = sum(timeDurSec, na.rm = TRUE)) %>%
-      arrange(desc(totalTime))
-    
-    # Plot transportation time
-    ggplot(transportTime, aes(x = reorder(activity, -totalTime), y = totalTime / 3600, fill = activity)) +
-      geom_bar(stat = "identity") +
-      theme_minimal() +
-      labs(title = paste("Time Spent on Transport (Hours) -",
-                         ifelse(input$selectedWeek == "Overall", "Overall", paste("Week", input$selectedWeek)),
-                         "-", input$selectedPerson),
-           x = "Transportation Type", y = "Time (Hours)", fill = "Transport") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  })
+######################### Rodzaj Transportu ##################################
 
+person_colors <- c(
+  "Klaudia" = "#1ea362",
+  "Michal"  = "#4a89f3",
+  "Jozef"   = "#dd4b3e"
+)
+
+#########################
+#  Dot Plot 
+#########################
+output$dotPlot <- renderPlot({
+  # Laczenie danych
+  all_data <- dplyr::bind_rows(
+    podroze_joz  %>% mutate(distance = as.numeric(distance)),
+    podroze_mic  %>% mutate(distance = as.numeric(distance)),
+    podroze_kla  %>% mutate(distance = as.numeric(distance))
+  )
   
-  ############################## Aktywności ####################################
+  # Filtrowanie
+  filtered_data <- all_data %>%
+    dplyr::filter(person %in% input$People) %>%
+    dplyr::filter(weekNum >= input$sliderWeekTransport[1],
+                  weekNum <= input$sliderWeekTransport[2])
   
-    output$weeklyActivitiesText1 <- renderText({
-      paste0("This stacked barplot shows where ", input$dropdown1, " spends their average day of the week. 
-       These places have been grouped into a set of categories: shopping includes all the time spent buying groceries or new clothes; 
-       restaurants include coffee shops and bakeries; university refers to all the buildings of the Warsaw University of Technology; 
-       home includes vacation homes; entertainment encompasses sports, movie theaters, and similar activities; 
-       and transport is the time spent traveling.")
-    })
+  # Jak brak danych 
+  if (nrow(filtered_data) == 0) {
+    plot.new()
+    text(0.5, 0.5, "No data for the chosen people/weeks.")
+    return()
+  }
   
-  output$dailyActivitiesPlot <- renderPlot({
-    if(input$dropdown1 == "Jozef"){
-      podroze <- podroze_joz
-      wizyty <- wizyty_joz
-    } else if(input$dropdown1 == "Klaudia"){
-      podroze <- podroze_kla
-      wizyty <- wizyty_kla
-    } else {
-      podroze <- podroze_mic
-      wizyty <- wizyty_mic
-    }
+  person_data_stacked <- filtered_data %>%
+    group_by(activity, person) %>%
+    mutate(countIndex = row_number()) %>%
+    ungroup()
+  
+  all_activities <- sort(unique(
+    c(podroze_joz$activity, podroze_mic$activity, podroze_kla$activity)
+  ))
+  
+  # Wykres
+  ggplot(person_data_stacked, aes(x = activity, y = countIndex, color = person)) +
+    geom_point(position = position_dodge(width = 0.6), size = 3, alpha = 0.8) +
+    scale_x_discrete(limits = all_activities) +
+    scale_color_manual(values = person_colors) +
+    theme_minimal(base_family = "roboto", base_size = 14) +   # <-- USTAWIENIE CZCIONKI I ROZMIARU
+    labs(
+      title = "Dot Plot of Trips (One dot per instance)",
+      x     = "Transport Type",
+      y     = "Count Index"
+    ) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.title = element_blank()
+    )
+})
+
+#########################
+#  Transport Time Plot
+#########################
+output$transportTimePlot <- renderPlot({
+  # laczymy dane
+  all_data <- dplyr::bind_rows(
+    podroze_joz  %>% mutate(distance = as.numeric(distance)),
+    podroze_mic  %>% mutate(distance = as.numeric(distance)),
+    podroze_kla  %>% mutate(distance = as.numeric(distance))
+  )
+  
+  # Filtrujemy
+  filtered_data <- all_data %>%
+    dplyr::filter(person %in% input$People) %>%
+    dplyr::filter(weekNum >= input$sliderWeekTransport[1],
+                  weekNum <= input$sliderWeekTransport[2])
+  
+  # Gdy brak danych
+  if (nrow(filtered_data) == 0) {
+    plot.new()
+    text(0.5, 0.5, "No data for chosen people/weeks.")
+    return()
+  }
+  
+  #Lista wszystkich możliwych aktywności
+  all_activities <- sort(unique(
+    c(podroze_joz$activity, podroze_mic$activity, podroze_kla$activity)
+  ))
+  
+  # Podsumowujemy czas per (activity, person)
+  transportTime <- filtered_data %>%
+    dplyr::group_by(activity, person) %>%
+    dplyr::summarise(totalTime = sum(timeDurSec, na.rm = TRUE), .groups = "drop")
+  
+  # Uzupełniamy brakujące kombinacje (aktywnosc, osoba) zerem
+  transportTime <- transportTime %>%
+    tidyr::complete(
+      activity = all_activities,
+      person   = input$People,
+      fill = list(totalTime = 0) 
+    )
+  
+  # Wykres
+  ggplot(transportTime, aes(x = activity, y = totalTime / 3600, fill = person)) +
+    geom_bar(
+      stat     = "identity",
+      position = position_dodge(width = 0.8),
+      width    = 0.7                        
+    ) +
+    scale_x_discrete(limits = all_activities) +
+    scale_fill_manual(values = person_colors) +
+    theme_minimal(base_family = "roboto", base_size = 14) + 
+    labs(
+      title = paste0("Time Spent on Transport (Hours) - Weeks ",
+                     paste(input$sliderWeekTransport, collapse = "-")),
+      x = "Transportation Type",
+      y = "Time (Hours)"
+    ) +
+    theme(
+      axis.text.x      = element_text(angle = 45, hjust = 1),
+      legend.title     = element_blank(),
+      panel.grid.minor = element_blank()
+    )
+})
+
+#####################
+#### Spider Plot ####
+#####################
+
+output$spiderPlot <- renderPlot(
+  height = function() {
+    275 * max(length(input$People), 1)
+  },
+  {
     
-    activity_colors <- c(
-      "home" = "#1ea362",
-      "university" = "#4a89f3",
-      "transport" = "#dd4b3e",
-      "entertainment" = "#ffff90",
-      "shopping" = "#ffe047",
-      "restaurants" = "#aadaff",
-      "other" = "#ff0000"
+    # laczenie danych
+    all_data <- bind_rows(
+      podroze_joz %>% mutate(distance = as.numeric(distance)),
+      podroze_mic %>% mutate(distance = as.numeric(distance)),
+      podroze_kla %>% mutate(distance = as.numeric(distance))
     )
     
-    czas_w_transporcie <- podroze %>%
-      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
-      mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
-             dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
-      group_by(dayOfWeek) %>% 
-      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
-      ungroup() %>% 
-      group_by() %>% 
-      select(dayOfWeek, meanTimeDur, activity_type) %>% 
-      group_by(dayOfWeek, meanTimeDur) %>% 
-      slice(1)
+    # filtrowanie 
+    filtered_data <- all_data %>%
+      filter(person %in% input$People) %>%
+      filter(
+        weekNum >= input$sliderWeekTransport[1],
+        weekNum <= input$sliderWeekTransport[2]
+      )
     
-    czas_miejsca <- wizyty %>% 
-      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
-      filter(place != "MiNI") %>% 
-      mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>%
-      mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
-             dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
-      select(dayOfWeek, timeDurSec, activity_type) %>% 
-      group_by(dayOfWeek, activity_type) %>% 
-      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
-      ungroup() %>% 
-      select(dayOfWeek, activity_type, meanTimeDur) %>% 
-      group_by(dayOfWeek, activity_type, meanTimeDur) %>% 
-      slice(1)
+    # gdy brak danych
+    if (nrow(filtered_data) == 0) {
+      plot.new()
+      text(0.5, 0.5, "No data for the chosen people/weeks.")
+      return()
+    }
     
-    czas <- rbind(czas_miejsca, czas_w_transporcie)
+    all_activities <- sort(unique(
+      c(podroze_joz$activity, podroze_mic$activity, podroze_kla$activity)
+    ))
     
+    # helper function do wykresu
+    create_beautiful_radarchart <- function(data, color = "#4285F4", 
+                                            vlabels = colnames(data), vlcex = 0.7,
+                                            caxislabels = rep("", 5), title = NULL, ...) {
+      radarchart(
+        data,
+        axistype = 1,
+        pcol      = color,
+        pfcol     = scales::alpha(color, 0.5),
+        plwd      = 2, 
+        plty      = 1,
+        cglcol    = "grey", 
+        cglty     = 1, 
+        cglwd     = 0.8,
+        axislabcol = "grey",
+        vlcex     = vlcex, 
+        vlabels   = vlabels,
+        caxislabels = caxislabels,
+        title     = title,
+        ...
+      )
+    }
     
+    # lista wybranych osob
+    persons_selected <- unique(filtered_data$person)
     
-    wyk2 <- ggplot(czas, aes(y = meanTimeDur, x = dayOfWeek, fill = activity_type))+
-      geom_bar(stat = "identity", position = "fill") +
-      labs(fill = "Activity Type") +                         
-      xlab("Day of week") +                                     
-      ylab("% of time of day") +                      
-      ggtitle(paste0("Average daily time spent in each place by ", input$dropdown1)) +     
-      theme_minimal()+
-      scale_fill_manual(values = activity_colors) +
-      theme(
-        panel.background = element_rect(fill = "#f5f5f5", color = NA), 
-        plot.background = element_rect(fill = "#f5f5f5", color = NA),
-        plot.title = element_text(size = 20),      
-        axis.title.x = element_text(size = 20),    
-        axis.title.y = element_text(size = 20),    
-        axis.text = element_text(size = 15),       
-        legend.text = element_text(size = 15),
-        legend.title = element_text(size = 20),
-        axis.text.x = element_text(angle = 45, hjust = 1)
-      ) +
-      scale_y_continuous(labels = scales::percent)
+    # ustawienia ukladu
+    par(
+      mfrow  = c(length(persons_selected), 1),
+      mar    = c(3,3,3,3),
+      family = "roboto",  # <-- rodzina czcionki
+      cex    = 1.2        # <-- globalne powiększenie tekstu
+    )
     
-    wyk2
-  })
+    # petla po osobach
+    for (p in persons_selected) {
+      data_for_person <- filtered_data %>%
+        filter(person == p)
+      
+      transport_counts <- data_for_person %>%
+        count(activity) %>%
+        complete(activity = all_activities, fill = list(n = 0)) %>%
+        arrange(activity)
+      
+      wide_df <- transport_counts %>%
+        pivot_wider(
+          names_from  = activity,
+          values_from = n,
+          values_fill = 0
+        )
+      
+      max_val <- max(wide_df, na.rm = TRUE)
+      df_for_radar <- rbind(
+        rep(max_val, ncol(wide_df)),  # MAX
+        rep(0,       ncol(wide_df)),  # MIN
+        wide_df
+      )
+      
+      df_for_radar <- as.data.frame(df_for_radar)
+      rownames(df_for_radar) <- c("MAX", "MIN", "DATA")
+      
+      color_for_person <- person_colors[p] %||% "#999999"
+      
+      create_beautiful_radarchart(
+        data  = df_for_radar,
+        color = color_for_person,
+        family = "roboto",
+        cex    = 1.2,
+        title = paste0("Transport - ", p, 
+                       "\n(Weeks ", paste(input$sliderWeekTransport, collapse = "-"), ")")
+      )
+    }
+  }
+)
+
   
   
   ############################## Predkość ######################################
