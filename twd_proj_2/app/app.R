@@ -22,8 +22,6 @@ library(fmsb)
 library(rlang)
 
 
-
-
 lok_joz <- fromJSON(file = "../data/Os_czasu_jo.json")
 lok_mic <- fromJSON(file = "../data/Os_czasu_mi.json")
 lok_kla <- fromJSON(file = "../data/Os_czasu_kl.json")
@@ -318,72 +316,10 @@ server <- function(input, output, session) {
 
         ")),
         
-        
+
         tags$img(id = "person_icon", src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png", height = "70px", width = "70px"),
         
-        # div(
-        #   class = "fixed-bottom-row",
-        #   fluidRow(
-        #     
-        #     # ten bez calendar
-        #     column(4,
-        #            conditionalPanel(
-        #              condition = "input.mainTabs !== 'calendar'",
-        #              selectInput(
-        #                inputId = "People",
-        #                label = "Select people:",
-        #                choices = c("Jozef", "Klaudia", "Michal"),
-        #                selected = c("Jozef", "Klaudia", "Michal"),
-        #                multiple = TRUE
-        #              )
-        #            )
-        #     ),
-        #     
-        #     # bez transport
-        #     column(4,
-        #            conditionalPanel(
-        #              condition = "input.mainTabs !== 'transport'",
-        #              sliderInput(
-        #                "sliderWeekMap", 
-        #                "Select weeks for the plot:",
-        #                min = 1, max = 5, value = c(1, 2), step = 1
-        #              )
-        #            )
-        #     ),
-        #     
-        #     column(4,
-        #            conditionalPanel(
-        #              condition = "input.mainTabs === 'mapTab'",
-        #              sliderInput(
-        #                inputId = "topPlacesCountMap",
-        #                label = "Select number of top places to display:",
-        #                min = 1, max = 20, value = 5, step = 1
-        #              )
-        #            )
-        #     ),
-        #     column(4,
-        #            conditionalPanel(
-        #              condition = "input.mainTabs === 'calendar'",
-        #              selectInput("dropdown1", "Choose the person:",
-        #                          choices = c("Jozef", "Michal", "Klaudia"))
-        #            )
-        #     ),
-        #     column(4,
-        #            conditionalPanel(
-        #              condition = "input.mainTabs === 'transport'",
-        #              selectInput(
-        #                inputId = "TransportType",
-        #                label = "Select transport type:",
-        #                choices = c("cycling", "in car", "in subway", "in tram", "walking", "in train"),
-        #                selected = "walking"
-        #              )
-        #            )
-        #     )
-        #     
-        #     
-        #   )
-        # ),
-        
+ 
         titlePanel(
           
           h1(style = "font-size: 60px; font-weight: 1000; padding: 10px",
@@ -423,24 +359,24 @@ server <- function(input, output, session) {
         
         tabsetPanel(
           tags$style(HTML("
-  .tab-content {
-    width: 100% !important; /* Ensure full width */
-  }
-  .tab-pane {
-    width: 100% !important; /* Ensure tab content uses full width */
-  }
-")),
-          tags$style(HTML("
-    .shiny-input-container {
-      position: relative;
-    }
-    .shiny-input-container .selectize-dropdown {
-      position: absolute !important;
-      bottom: 100% !important;
-      top: auto !important;
-      margin-bottom: 5px;
-    }
-  ")),
+          .tab-content {
+            width: 100% !important; /* Ensure full width */
+          }
+          .tab-pane {
+            width: 100% !important; /* Ensure tab content uses full width */
+          }
+        ")),
+                  tags$style(HTML("
+            .shiny-input-container {
+              position: relative;
+            }
+            .shiny-input-container .selectize-dropdown {
+              position: absolute !important;
+              bottom: 100% !important;
+              top: auto !important;
+              margin-bottom: 5px;
+            }
+          ")),
           type = "tabs",
           
           tabPanel(
@@ -448,20 +384,20 @@ server <- function(input, output, session) {
             
             div(
               class = "fixed-bottom-row",
-              style = "display: flex; gap: 20px; height: 170px",
+              style = "display: flex; gap: 20px; height: 120px",
               sliderInput("sliderWeek1", "Select weeks for the plot:",
                           min = 1, max = 6, value = c(1, 2), step = 1),
               selectInput("dropdown1", "Choose the person:",
                           choices = c("Jozef", "Michal", "Klaudia"))
             ),
-            
+
             mainPanel(
-              
+
               style = "flex-grow: 1; width: 90%; padding: 20px; height: 120px;",
               div(
-                style = "display: flex; flex-direction: column; gap: 40px; align-items: stretch; width: 100%;", 
+                style = "display: flex; flex-direction: column; gap: 40px; align-items: stretch; width: 100%;",
                 div(
-                  style = "text-align: center; width: 100%; padding: 50;", 
+                  style = "text-align: center; width: 100%; padding: 50;",
                   textOutput("weeklyActivitiesText1")
                 ),
                 div(
@@ -471,7 +407,7 @@ server <- function(input, output, session) {
               )
             )
           ),
-          
+
           tabPanel(
             title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/1034/1034795.png", height = "40px", width = "40px"),
             
@@ -482,13 +418,13 @@ server <- function(input, output, session) {
                 inputId = "People",
                 label = "Select people:",
                 choices = c("Jozef", "Klaudia", "Michal"),
-                selected = c("Klaudia", "Michal"),  
-                multiple = TRUE  
+                selected = c("Klaudia", "Michal"),
+                multiple = TRUE
               ),
               sliderInput("sliderWeekTransport", "Select weeks for the plot:",
                           min = 1, max = 6, value = c(1, 2), step = 1)
             ),
-            
+
             mainPanel(
               style = "flex-grow: 1; width: 90%; padding: 20px; height: 1200px",
               fluidRow(
@@ -497,7 +433,7 @@ server <- function(input, output, session) {
                   width = 3,
                   plotOutput("spiderPlot")
                 ),
-                
+
                 # PRAWA kolumna: DotPlot + TransportTimePlot
                 column(
                   width = 6,
@@ -507,7 +443,7 @@ server <- function(input, output, session) {
               )
             )
           ),
-          
+
           tabPanel(
             title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/7552/7552703.png", height = "40px", width = "40px"),
             
@@ -518,8 +454,8 @@ server <- function(input, output, session) {
                 inputId = "People",
                 label = "Select people:",
                 choices = c("Jozef", "Klaudia", "Michal"),
-                selected = c("Klaudia", "Michal"),  
-                multiple = TRUE  
+                selected = c("Klaudia", "Michal"),
+                multiple = TRUE
               ),
               selectInput(
                 inputId = "TransportType",
@@ -532,7 +468,7 @@ server <- function(input, output, session) {
             mainPanel(
               style = "flex-grow: 1; width: 90%; padding: 20px; height: 1700px",
               div(
-                style = "display: flex; flex-direction: column; align-items: center; gap: 30px; margin-bottom: 50px;", 
+                style = "display: flex; flex-direction: column; align-items: center; gap: 30px; margin-bottom: 50px;",
                 div(
                   style = "flex: 0 1 auto; text-align: center; padding-bottom: 20px;",
                   textOutput("transportSpeedText1")
@@ -543,20 +479,20 @@ server <- function(input, output, session) {
                 )
               ),
               div(
-                style = "display: flex; align-items: center; width: 100%; margin-bottom: 50px;", 
+                style = "display: flex; align-items: center; width: 100%; margin-bottom: 50px;",
                 div(
-                  style = "width: 50%;", 
+                  style = "width: 50%;",
                   plotOutput("transportSpeedBoxPlot2")
                 ),
                 div(
-                  style = "margin-left: 60px;", 
+                  style = "margin-left: 60px;",
                   textOutput("transportSpeedText2")
                 )
               ),
               div(
-                style = "display: flex; align-items: flex-start; gap: 20px;", 
+                style = "display: flex; align-items: flex-start; gap: 20px;",
                 div(
-                  style = "flex: 0 1 200px; display: flex; flex-direction: column; gap: 10px; width: 40%;", 
+                  style = "flex: 0 1 200px; display: flex; flex-direction: column; gap: 10px; width: 40%;",
                   selectInput(
                     inputId = "selectedPerson2",
                     label = "Select Person:",
@@ -574,22 +510,37 @@ server <- function(input, output, session) {
           ),
           
           tabPanel(
-            title = tags$img(src = "https://cdn-icons-png.flaticon.com/128/854/854878.png", height = "40px", width = "40px"),
+            title = tags$img(
+              src = "https://cdn-icons-png.flaticon.com/128/854/854878.png",
+              height = "40px",
+              width = "40px"
+            ),
+            value = 'mapTab',
             
             fluidRow(
               column(
                 12,
-                leafletOutput("map", width = "100%", height = "500px")
+                div(
+                  style = "position: relative; display: flex; justify-content: left; align-items: left;", 
+                  leafletOutput("map", width = "90%", height = "550px"),
+                  actionButton(
+                    inputId = "infoButton",
+                    label = NULL,
+                    icon = icon("info-circle"),
+                    style = "position: absolute; bottom: 15px; left: 20px; z-index: 1000; background-color: white;"
+                  )
+                )
               )
             ),
+        
             
             div(
               class = "fixed-bottom-row",
-              style = "display: flex; gap: 20px; height: 200px",
+              style = "display: flex; gap: 20px; height: 120px;",
               fluidRow(
                 column(4,
                        sliderInput(
-                         "sliderWeekMap", 
+                         "sliderWeekMap",
                          "Select weeks for the plot:",
                          min = 1, max = 5, value = c(1, 2), step = 1
                        )
@@ -613,8 +564,10 @@ server <- function(input, output, session) {
               )
             )
           )
+          
+          
         )
-        
+
       )
     }
   })
@@ -912,11 +865,11 @@ server <- function(input, output, session) {
     )
     
     czas_w_transporcie <- podroze %>%
-      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
+      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>%
       mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
              dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
       group_by(dayOfWeek) %>% 
-      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
+      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>%
       ungroup() %>% 
       group_by() %>% 
       select(dayOfWeek, meanTimeDur, activity_type) %>% 
@@ -924,14 +877,14 @@ server <- function(input, output, session) {
       slice(1)
     
     czas_miejsca <- wizyty %>% 
-      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>% 
+      filter(weekNum >= input$sliderWeek1[1] & weekNum <=  input$sliderWeek1[2]) %>%
       filter(place != "MiNI") %>% 
       mutate(day = as.POSIXct(substr(endTime, 1, 10), format = "%Y-%m-%d")) %>%
       mutate(dayOfWeek = weekdays(as.Date(endTime, format = "%Y-%m-%d")),
              dayOfWeek = factor(dayOfWeek, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
       select(dayOfWeek, timeDurSec, activity_type) %>% 
       group_by(dayOfWeek, activity_type) %>% 
-      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>% 
+      mutate(meanTimeDur = sum(timeDurSec)/(input$sliderWeek1[2] - input$sliderWeek1[1] + 1)) %>%
       ungroup() %>% 
       select(dayOfWeek, activity_type, meanTimeDur) %>% 
       group_by(dayOfWeek, activity_type, meanTimeDur) %>% 
@@ -1176,7 +1129,7 @@ server <- function(input, output, session) {
   # filter data
   filtered_data <- reactive({
     person_map <- c("Jozef" = "jo", "Michal" = "mi", "Klaudia" = "kl")
-    selected_people <- input$People
+    selected_people <- input$PeopleMap
     ppl_map <- person_map[selected_people]
     
     merged_df %>%
@@ -1199,8 +1152,9 @@ server <- function(input, output, session) {
     # get top n places
     top_places <- data_filtered %>%
       count(placeName, latitude, longitude, person) %>%
-      arrange(desc(n)) %>%
-      head(top_n)
+      group_by(person) %>%
+      slice_max(n, n = top_n) %>%
+      ungroup()
     
     # calculate values for setView
     lat_range <- max(top_places$latitude, na.rm = TRUE) - min(top_places$latitude, na.rm = TRUE)
@@ -1218,12 +1172,12 @@ server <- function(input, output, session) {
     }
     
     # colors
-    color_palette <- colorFactor(c("red", "green", "blue"), levels = c("jo", "kl", "mi"))
+    color_palette <- colorFactor(c("#dd4b3e", "#1ea362", "#4a89f3"), levels = c("jo", "kl", "mi"))
     
     # plot
     leaflet(data = top_places) %>%
       addProviderTiles(providers$CartoDB.Positron) %>%
-      setView(lng = center_lng, lat = center_lat, zoom = zoom) %>% 
+      setView(lng = center_lng, lat = center_lat, zoom = zoom) %>%
       addCircleMarkers(
         lat = ~latitude, lng = ~longitude,
         radius = ~sqrt(n) * 3,
@@ -1231,8 +1185,22 @@ server <- function(input, output, session) {
         popup = ~paste(
           "<strong>Place Name:</strong>", placeName, "<br>",
           "<strong>Visits:</strong>", n, "<br>"
-        ) 
-      ) 
+        )
+      ) %>%
+      addControl(
+        html = "<h5 style='text-align: center; color: #333;'>Map of Top most visited places</h5>",
+        position = "topright"
+      )
+  })
+
+  observeEvent(input$infoButton, {
+    showModal(modalDialog(
+      title = "Map Information",
+      "This map displays the top n most visited locations within the selected
+      time period for the chosen person or group. Use the filters to customize the view and explore data interactively.",
+      easyClose = TRUE,
+      footer = modalButton("Close")
+    ))
   })
   
   ################################# Mapa tło #####################################
