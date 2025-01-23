@@ -366,10 +366,10 @@ server <- function(input, output, session) {
         tabsetPanel(
           tags$style(HTML("
           .tab-content {
-            width: 100% !important; /* Ensure full width */
+            width: 100% !important;
           }
           .tab-pane {
-            width: 100% !important; /* Ensure tab content uses full width */
+            width: 100% !important; 
           }
         ")),
            tags$style(HTML("
@@ -489,7 +489,7 @@ server <- function(input, output, session) {
                   textOutput("transportSpeedText1")
                 ),
                 div(
-                  style = "flex: 1; width: 100%;", # Plot container
+                  style = "flex: 1; width: 100%;",
                   plotOutput("transportSpeedBoxPlot")
                 )
               ),
