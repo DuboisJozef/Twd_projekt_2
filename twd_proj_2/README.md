@@ -9,7 +9,7 @@ Here’s a brief overview of what each page offers:
 2.Transport: This page helps analyse what methods of transport we use.
 ![Image](screens/tspeed.png)
 3.Transport Speed: Here you can find informations on the speed of each method and more.
-![Image](screens/ttype.png)
+![Image](screens/map.png)
 4.Map: The map displays our most common localisations per week.
 
 Authors: Klaudia Kwoka, Michał Gwóźdź, Józef Dubois
