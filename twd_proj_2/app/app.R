@@ -149,7 +149,7 @@ miejsca <- function(x){
     mutate(person = "Klaudia")
   
 }
-# input$People <- c("Klaudia", "Józef", "Michał")
+
 
 ######################################################################UI######################################################################
 
@@ -249,7 +249,7 @@ server <- function(input, output, session) {
                )
             ),
             
-            # p("Welcome to the app", style = "font-size: 20px; color: #5F6368; font-weight: 00;"),
+            
             
             actionButton("startBtn", label = NULL, 
                          icon = icon("arrow-right"), 
@@ -334,7 +334,7 @@ server <- function(input, output, session) {
                
                paste0(
                  
-                 # Google colors to each letter
+                 
                  paste0(
                    '<span style="color: #4285F4;">', substr("Map My Moments", 1, 1), '</span>',
                    '<span style="color: #0f9d58;">', substr("Map My Moments", 2, 2), '</span>',
@@ -408,7 +408,7 @@ server <- function(input, output, session) {
                 ),
                 div(
                   style = "width: 100%; padding: 50;",
-                  plotOutput("dailyActivitiesPlot", width = "100%", height = "400px") # Adjust height as needed
+                  plotOutput("dailyActivitiesPlot", width = "100%", height = "400px") 
                 )
               )
             )
@@ -434,13 +434,13 @@ server <- function(input, output, session) {
             mainPanel(
               style = "flex-grow: 1; width: 90%; padding: 20px; height: 1200px",
               fluidRow(
-                # LEWA kolumna Spider Plot
+                
                 column(
                   width = 4,
                   plotOutput("spiderPlot")
                 ),
 
-                # PRAWA kolumna: DotPlot + TransportTimePlot
+                
                 column(
                   width = 8,
                   plotOutput("dotPlot"),
@@ -942,7 +942,7 @@ server <- function(input, output, session) {
   ############################## Predkość ######################################
   
   output$transportSpeedBoxPlot <- renderPlot({
-    # Combine datasets and filter based on inputs
+    
     podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic) %>%
       mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
              Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
@@ -965,7 +965,7 @@ server <- function(input, output, session) {
       "Józef" = "#dd4b3e"
     )
     
-    # Boxplot with people as color and weekdays on x-axis
+    
     ggplot(podroze2, aes(x = Day, y = as.numeric(distance) / as.numeric(timeDurSec), fill = person)) +
       geom_boxplot() +
       theme_minimal() +
@@ -1088,7 +1088,7 @@ server <- function(input, output, session) {
       c(pastel_color, max_color)
     })
     
-    # Resulting color list with minimum (lighter) and maximum colors
+    
     names(people_colors) <- names(max_people_colors)
     
     
