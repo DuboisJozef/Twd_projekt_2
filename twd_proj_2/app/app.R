@@ -314,6 +314,9 @@ server <- function(input, output, session) {
           box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
           z-index: 1000;
         }
+        
+        .ggtitle, .xlab, .ylab, .axis.text, .legend.text, .legend.title {
+      font-family: 'Arial', sans-serif;
 
         }
 
@@ -463,7 +466,7 @@ server <- function(input, output, session) {
               class = "fixed-bottom-row",
               style = "display: flex; gap: 20px; height: 120px",
               selectInput(
-                inputId = "People",
+                inputId = "People2",
                 label = "Select people:",
                 choices = c("Józef", "Klaudia", "Michał"),
                 selected = c("Klaudia", "Michał"),
@@ -509,7 +512,7 @@ server <- function(input, output, session) {
                     inputId = "selectedPerson2",
                     label = "Select Person:",
                     choices = c("Józef", "Michał", "Klaudia"),
-                    selected = "Józef"
+                    selected = "Michał"
                   ),
                   textOutput("transportSpeedText3")
                 ),
@@ -554,7 +557,7 @@ server <- function(input, output, session) {
                        sliderInput(
                          "sliderWeekMap",
                          "Select weeks for the plot:",
-                         min = 1, max = 5, value = c(1, 2), step = 1
+                         min = 1, max = 6, value = c(1, 2), step = 1
                        )
                 ),
                 column(4,
@@ -731,7 +734,7 @@ server <- function(input, output, session) {
   
   
   output$transport_text <- renderText({
-    "Michal demonstrates the most diverse transport habits, with a notable emphasis on cycling alongside frequent use of subways and passenger vehicles. Klaudia relies predominantly on walking and subways, mirroring Jozef’s reliance on walking as a primary mode of transport. Over time, Klaudia’s transport profile aligns more closely with Jozef’s, while Michal’s balanced and active transport style remains distinct."
+    "Michał demonstrates the most diverse transport habits, with a notable emphasis on cycling alongside frequent use of subways and passenger vehicles. Klaudia relies predominantly on walking and subways, mirroring Józef’s reliance on walking as a primary mode of transport. Over time, Klaudia’s transport profile aligns more closely with Józef’s, while Michał’s balanced and active transport style remains distinct."
   })
   
   #####################
@@ -943,7 +946,7 @@ server <- function(input, output, session) {
     podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic) %>%
       mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
              Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
-      filter(person %in% input$People, distance >= 1) %>%
+      filter(person %in% input$People2, distance >= 1) %>%
       mutate(activity2 = case_when(
         activity == "CYCLING" ~ "cycling",
         activity == "IN_PASSENGER_VEHICLE" ~ "in car",
@@ -988,7 +991,7 @@ server <- function(input, output, session) {
     podroze2 <- rbind(podroze_joz, podroze_kla, podroze_mic) %>%
       mutate(Day = weekdays(as.Date(startTime, format = "%Y-%m-%d")),
              Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
-      filter(person %in% input$People, distance >= 1) %>%
+      filter(person %in% input$People2, distance >= 1) %>%
       mutate(activity2 = case_when(
         activity == "CYCLING" ~ "cycling",
         activity == "IN_PASSENGER_VEHICLE" ~ "in car",
@@ -1170,7 +1173,8 @@ server <- function(input, output, session) {
     top_places <- data_filtered %>%
       count(placeName, latitude, longitude, person) %>%
       group_by(person) %>%
-      slice_max(n, n = top_n) %>%
+      arrange(person, desc(n)) %>%  
+      slice_head(n = top_n) %>%    
       ungroup()
     
     # calculate values for setView
@@ -1180,12 +1184,13 @@ server <- function(input, output, session) {
     if (nrow(top_places) > 0) {
       center_lat <- mean(top_places$latitude, na.rm = TRUE)
       center_lng <- mean(top_places$longitude, na.rm = TRUE)
-      zoom <- ifelse(lat_range > 1 || lng_range > 1, 7, 11)
+      zoom <- ifelse(lng_range > 10, 5, ifelse(lat_range > 1 || lng_range > 1, 8, 14))
+      
     } else {
       # warsaw default
       center_lat <- 52.2298
       center_lng <- 21.0118
-      zoom <- 10
+      zoom <- 15
     }
     
     # colors
